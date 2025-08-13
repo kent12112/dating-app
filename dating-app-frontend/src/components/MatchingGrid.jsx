@@ -1,0 +1,199 @@
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
+import axios from "axios";
+
+// Helper function: Haversine formula (distance in km)
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  const toRad = (deg) => deg * Math.PI / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) + 
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+const LOCATION_CACHE_KEY = "cachedUserLocation";
+const LOCATION_DISTANCE_THRESHOLD_KM = 0.1; // 100 meters
+
+const MatchingGrid = () => {
+  const [users, setUsers] = useState([]);
+  const [likedUsers, setLikedUsers] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [locationDenied, setLocationDenied] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load cached location from localStorage
+  function getCachedLocation() {
+    try {
+      const cached = localStorage.getItem(LOCATION_CACHE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  }
+  // Save location to localStorage
+  function cacheLocation(location) {
+    try {
+      localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(location));
+    } catch {}
+  }
+
+  // Fetch users + likes and sort by distance
+  async function fetchAndSortUsers(lat, lon) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const [usersRes, likesRes] = await Promise.all([
+        axios.get("http://localhost:5000/api/user/all", { headers: { "x-auth-token": token } }),
+        axios.get("http://localhost:5000/api/user/likes-sent", { headers: { "x-auth-token": token } }),
+      ]);
+      setLikedUsers(likesRes.data.likeSent || []);
+
+      const sortedUsers = usersRes.data
+        .filter(u => u.latitude != null && u.longitude != null)
+        .map(user => ({
+          ...user,
+          distance: getDistanceFromLatLonInKm(lat, lon, user.latitude, user.longitude),
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      setUsers(sortedUsers);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+  
+    const cachedLocation = getCachedLocation();
+    if (cachedLocation) {
+      setCurrentLocation(cachedLocation);
+      fetchAndSortUsers(cachedLocation.latitude, cachedLocation.longitude);
+    } else {
+      setLoading(true);
+    }
+  
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationDenied(false);
+  
+          const movedFar =
+            !cachedLocation ||
+            getDistanceFromLatLonInKm(
+              cachedLocation.latitude,
+              cachedLocation.longitude,
+              latitude,
+              longitude
+            ) > LOCATION_DISTANCE_THRESHOLD_KM;
+  
+          // ✅ Always update backend location
+          try {
+            await axios.post(
+              "http://localhost:5000/api/user/location",
+              { latitude, longitude },
+              { headers: { "x-auth-token": token } }
+            );
+          } catch (err) {
+            console.error("Failed to update location", err);
+          }
+
+          // ✅ Always fetch users
+          fetchAndSortUsers(latitude, longitude);
+  
+          // ✅ Only update cache & re-sort if moved far enough
+          if (movedFar) {
+            setCurrentLocation({ latitude, longitude });
+            cacheLocation({ latitude, longitude });
+          }
+        },
+        (error) => {
+          console.error("Geolocation error", error);
+          setLocationDenied(true);
+          setLoading(false);
+        }
+      );
+    } else {
+      console.error("Geolocation not supported");
+      setLocationDenied(true);
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (locationDenied) return <div>Please allow location services to see other users.</div>;
+
+  //handle the like request
+const handleLike = async(userId) => {
+  const token = localStorage.getItem("token");
+  try {
+    await axios.post(`http://localhost:5000/api/user/like/${userId}`, {}, {
+      headers: {"x-auth-token": token},
+    });
+
+    setLikedUsers((prev) => [...prev, userId]);
+  } catch (err) {
+    console.error("Liked failed", err);
+  }
+}
+
+  return (
+    <div className="flex flex-wrap justify-center gap-4 p-4">
+      {users.map(user => (
+        <div
+        key={user._id}
+        className="w-[220px] h-[300px] border border-gray-300 rounded flex flex-col bg-white transition duration-200 ease-in-out hover:shadow-lg hover:scale-105 items-center"
+        >
+          <Link 
+            to={`/app/user/${user._id}`}
+            state={{fromMatches: true}}
+            className="w-[210px] h-[250px] flex flex-col bg-white p-3 transition duration-200 ease-in-out hover:scale-105">
+            <div className="flex justify-center">
+              <img src={
+                    user.photos && user.photos.length > 0
+                      ? `http://localhost:5000${user.photos[0]}`
+                      : `http://localhost:5000/uploads/default-photo.jpg`
+                      } 
+                    alt={user.name} 
+                    className="w-[180px] h-[200px] object-cover rounded"/>
+            </div>
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-black">
+                {user.name}, {user.age}
+              </h2>
+              <span className="text-sm text-gray-600">
+                {user.distance >= 1
+                  ? `${user.distance.toFixed(1)} km`
+                  : `${Math.round(user.distance * 1000)} m`}
+              </span>
+            </div>
+          </Link>
+          <button
+            onClick={() => handleLike(user._id)}
+            disabled={likedUsers.includes(user._id)}
+            className={`mt-2 w-full py-1 rounded text-white ${
+              likedUsers.includes(user._id)
+                ? "bg-gray-400 cursor-not-allowed" // ✅ style for already liked
+                : "bg-purple-500 hover:bg-purple-600"
+            }`}
+          >
+          {likedUsers.includes(user._id) ? "Liked" : "Like"}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+
+export default MatchingGrid;
