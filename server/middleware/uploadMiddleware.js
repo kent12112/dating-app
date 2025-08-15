@@ -1,7 +1,7 @@
 //multer: middleware to handle file uploads
 //path: node.js module for safely wprking with file paths and extensions
-const multer = require("multer");
-const path = require("path");
+import multer from "multer";
+import path from "path";
 
 //set storage engine
 //destination: all files go to the uploads/ dir
@@ -29,5 +29,6 @@ const fileFilter = (req, file, cb) => {
 };
 //storage: save files on local disk
 //fileDilter: only alow image MIME tyypes
-const upload = multer({storage, fileFilter});
-module.exports = upload;
+const upload = multer({ storage, fileFilter });
+
+export default upload;

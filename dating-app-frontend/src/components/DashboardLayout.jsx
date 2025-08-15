@@ -1,7 +1,35 @@
-import {Link, Outlet} from "react-router-dom";
-import ProfileDropdown from "./ProfileDropdown";
+import {Link, Outlet, useNavigate} from "react-router-dom";
+import { UserButton, useUser, useAuth } from "@clerk/clerk-react"; // Clerk user menu
+import { useEffect } from "react";
 //Outlet: tells the app, render the child route compoent here
+
 const DashboardLayout = () => {
+  const { user } = useUser(); 
+  const { getToken } = useAuth();
+  const navigate = useNavigate(); 
+  useEffect(() => {
+    async function initUser() {
+      if (!user) return;
+
+      try {
+        // Get a session token (no template needed)
+        const token = await getToken();
+
+        // Use the token in your API request
+        await fetch("http://localhost:5000/api/user/init", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to initialize user –", error);
+      }
+    }
+
+    initUser();
+  }, [user, getToken]);
+
   return (
     <div style={{padding: "20px"}}>
       {/*Header*/}
@@ -9,15 +37,41 @@ const DashboardLayout = () => {
         <div className="flex-grow">
         </div>
         <div>
-          <ProfileDropdown />
+            <UserButton>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label="View my profile"
+                labelIcon="👤"
+                onClick={() =>  navigate("/app/view-profile")}
+              />
+              <UserButton.Action
+                label="Edit my profile"
+                labelIcon="👤"
+                onClick={() => navigate("/app/edit-profile")} 
+              />
+            </UserButton.MenuItems>
+          </UserButton>
         </div>
       </div>
-      <nav className="fixed inset-x-0 bottom-0 h-[60px] md:top-0 md:bottom-auto bg-white border-t md:border-b md:border-t-0 p-4 flex justify-around">
+      <nav className="fixed inset-x-0 bottom-0 h-[60px] md:top-0 md:bottom-auto bg-white border-t md:border-b md:border-t-0 p-4 flex justify-around z-50">
         <Link to="/app" style={{marginRight: "10px"}}>🏠</Link>
         <Link to="/app/likes-received" style={{marginRight: "10px"}}>❤️</Link>
         <Link to="/app/matches" style={{marginRight: "10px"}}>💬</Link>
         <div className="hidden md:block" style={{marginRight: "10px"}}>
-          <ProfileDropdown />
+          <UserButton>
+          <UserButton.MenuItems>
+            <UserButton.Action
+              label="View my profile"
+              labelIcon="👤"
+              onClick={() =>  navigate("/app/view-profile")}
+            />
+            <UserButton.Action
+              label="Edit my profile"
+              labelIcon="👤"
+              onClick={() =>  navigate("/app/edit-profile")}
+            />
+          </UserButton.MenuItems>
+        </UserButton>
         </div>
       </nav>
       {/* Page content */}

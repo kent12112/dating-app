@@ -1,36 +1,45 @@
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 const ReceivedLikes = () => {
   const [likedByUsers, setLikedByUsers] = useState([]);
   const navigate = useNavigate();
+  const { user } = useUser();
+  const clerk = useClerk(); 
+
+  const getToken = async () => { 
+    if (!clerk || !clerk.session) return null; 
+    return await clerk.session.getToken();
+  };
+
   useEffect(() => {
+    if (!user) return;
+
     const fetchLikes = async () => {
-      const token = localStorage.getItem("token");
+      const token = await getToken();
       if (!token) {
-        console.error("No token found");
+        console.error("No Clerk token found");
         return
       }
       try {
         const res =  await axios.get("http://localhost:5000/api/user/likes-received", {
-          headers: {"x-auth-token": token},
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log(res.data.likes);
         setLikedByUsers(res.data.likes || []);
-        console.log(likedByUsers);
       } catch (err) {
         console.error("Failed to fetch received likes:", err.response?.data || err.message);
         setLikedByUsers([]);
       }
     }
     fetchLikes();
-  }, []);
+  }, [user, clerk]);
 
   const handleMatch = async (otherUserId) => {
-    const token = localStorage.getItem("token");
+    const token = await getToken();
     if (!token) {
-      console.error("No token found");
+      console.error("No Clerk token found");
       return;
     }
 
@@ -38,12 +47,10 @@ const ReceivedLikes = () => {
       await axios.post(
         `http://localhost:5000/api/user/match/${otherUserId}`,
         {},
-        {
-          headers: {"x-auth-token": token},
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       //remove matched user from the like received list
-      setLikedByUsers(prev => prev.filter(user => user._id != otherUserId));
+      setLikedByUsers(prev => prev.filter(user => user._id !== otherUserId));
       navigate(`/app/chat/${otherUserId}`);
     } catch (err) {
       console.error("Failed to match user:", err.response?.data || err.message);
@@ -57,27 +64,27 @@ const ReceivedLikes = () => {
       {likedByUsers.length === 0 ? (
           <p className="text-gray-600 text-center">You haven't received any likes yet.</p>
         ) : (
-          likedByUsers.map(user => (
+          likedByUsers.map(u => (
             <div
-              key={user._id} 
+              key={u._id} 
               className="w-[220px] h-[300px] border border-gray-300 rounded flex flex-col bg-white transition duration-200 ease-in-out hover:shadow-lg hover:scale-105 items-center"
             >
               <Link
-                to={`/app/user/${user._id}`}
+                to={`/app/user/${u._id}`}
                 className="w-[210px] h-[250px] flex flex-col bg-white p-3 transition duration-200 ease-in-out hover:scale-105"
               >
                 <div className="flex justify-center">
                   <img 
-                    src={`http://localhost:5000${user.photos?.[0] || 'default-photo.jpg'}`}
-                    alt={user.name} 
+                    src={`http://localhost:5000${u.photos?.[0] || 'default-photo.jpg'}`}
+                    alt={u.name} 
                     className="w-[180px] h-[200px] object-cover rounded" />
                 </div>
                 <h2 className="text-lg font-semibold text-black text-center">
-                  {user.name}, {user.age}
+                  {u.name}, {u.age}
                 </h2>
               </Link>
               <button
-                onClick={() => handleMatch(user._id)}
+                onClick={() => handleMatch(u._id)}
                 className="mt-2 w-full py-1 rounded text-white bg-purple-400 hover:bg-purple-500"
               >
                 Match

@@ -1,20 +1,21 @@
-import {useContext, useEffect, useState, useCallback} from "react";
+import {useEffect, useState, useCallback} from "react";
 import axios from "axios";
-import {UserContext} from "../context/UserContext";
 import {useNavigate} from "react-router-dom";
+import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 
 
 const Profile = () => {
   const navigate = useNavigate();
-  //user: contains the current user's data
-  //setUser: lets you update the user globally when they make changes to their profile
-  const {user, setUser} = useContext(UserContext);
+  const { getToken } = useAuth();
   //this local state holds the editable form values
   const [formData, setFormData] = useState({
+    name: "",
     age: "",
     gender: "",
     nationality: "",
     languages: "",
+    height: "",
+    location: "",
     lookingFor: "",
     bio: "",
   });
@@ -22,23 +23,30 @@ const Profile = () => {
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [message, setMessage] = useState("");
 
+  const { user: clerkUser } = useUser();
+  const clerk = useClerk(); 
+
   //load profile on component mount
   //uses axios to GET the user's profile from /api/user/profile
   //sets the data into the form using setFormData
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      axios
-        .get("http://localhost:5000/api/user/profile", {
-          headers: {"x-auth-token": token},
-        })
-        .then((res) => {
-          setFormData(res.data);
-          setUploadedPhotos(res.data.photos || []);
-        })
-        .catch((err) => console.log(err));
-    }
-  }, []);
+    if (!clerkUser) return; 
+
+    const fetchProfile = async () => {
+      const token = await getToken();
+      if (!token) return; 
+      try {
+        const res = await axios.get("http://localhost:5000/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` }, 
+        });
+        setFormData(res.data);
+        setUploadedPhotos(res.data.photos || []);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchProfile();
+  }, [clerkUser, clerk]);
   //when the user types
   //tracks what the user types into each field.
   //updates the corresponding key in formData
@@ -52,16 +60,16 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
+    const token = await getToken();
+    if (!token) return; 
     try {
       const res = await axios.put(
         "http://localhost:5000/api/user/profile",
         formData,
         {
-          headers: {"x-auth-token": token},
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setUser(res.data); //update context
       navigate("/app");
 
     } catch (err) {
@@ -72,7 +80,8 @@ const Profile = () => {
 
   //photo upload
   const handlePhotoUpload = async (e) => {
-    const token = localStorage.getItem("token");
+    const token = await getToken(); 
+    if (!token) return;
     //calculate how many photos
     const maxPhotos = 6;
     const availableSlots = maxPhotos - uploadedPhotos.length;
@@ -95,13 +104,14 @@ const Profile = () => {
         formData,
         {
           headers: {
-            "x-auth-token": token,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
       );
       setUploadedPhotos(res.data.photos);
       setMessage(res.data.msg || "Photos uploaded!");
+      e.target.value = null;
     } catch (err) {
       console.error(err);
       setMessage("Photo upload failed");
@@ -110,20 +120,19 @@ const Profile = () => {
 
   //photo delete
   const handleDeletePhoto = async (photoPath) => {
-    const token = localStorage.getItem("token");
+    const token = await getToken(); 
+    if (!token) return;
     try {
       await axios.delete(
         `http://localhost:5000/api/user/photo`,
         {
-          headers: {
-            "x-auth-token": token,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           data: {photoPath}, // send photo path in body
         }
       );
       //refetch user profile
       const res = await axios.get("http://localhost:5000/api/user/profile", {
-        headers: { "x-auth-token": token },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUploadedPhotos(res.data.photos || []);
       setMessage("Photo deleted!");
@@ -178,6 +187,10 @@ const Profile = () => {
       {/* Profile form */}
         {/*RIGHT SIDE*/}
       <form onSubmit={handleSubmit} className="md:basis-8/12">
+        <p className="w-full font-semibold">Name</p>
+        <div className="border border-solid border-gray-400 mb-2">
+          <input name="name" value={formData.name || ""} onChange={handleChange} placeholder="Name" className="bg-white w-full h-[40px]"/>
+        </div>
         <p className="w-full font-semibold">Age</p>
         <div className="border border-solid border-gray-400 mb-2">
           <input name="age" value={formData.age || ""} onChange={handleChange} placeholder="Age" className="bg-white w-full h-[40px]"/>
@@ -192,7 +205,15 @@ const Profile = () => {
         </div>
         <p className="w-full font-semibold">Languages</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="languages" value={formData.languages || ""} onChange={handleChange} placeholder="languages" className="bg-white  w-full h-[40px]"/>
+          <input name="languages" value={formData.languages || ""} onChange={handleChange} placeholder="Languages" className="bg-white  w-full h-[40px]"/>
+        </div>
+        <p className="w-full font-semibold">Height</p>
+        <div className="border border-solid border-gray-400 mb-2">
+          <input name="height" value={formData.height || ""} onChange={handleChange} placeholder="Height" className="bg-white  w-full h-[40px]"/>
+        </div>
+        <p className="w-full font-semibold">Where do you live?</p>
+        <div className="border border-solid border-gray-400 mb-2">
+          <input name="location" value={formData.location || ""} onChange={handleChange} placeholder="Location" className="bg-white w-full h-[40px]"/>
         </div>
         <p className="w-full font-semibold">What I am looking for...</p>
         <div className="border border-solid border-gray-400 mb-2">

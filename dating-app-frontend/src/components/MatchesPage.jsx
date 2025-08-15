@@ -1,25 +1,46 @@
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import axios from "axios";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
+  const { user } = useUser(); 
+  const clerk = useClerk();
+
+  const getToken = async () => { 
+    if (!clerk || !clerk.session) return null;
+    return await clerk.session.getToken();
+  };
 
   useEffect(() => {
+    if (!user) return; 
+
     const fetchMatches = async () => {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/user/matches", {
-        headers: {"x-auth-token": token}
-      });
-      const sortedMatches = res.data.sort((a, b) => {
-        const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-        const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-        return timeB - timeA;
-      })
-      setMatches(sortedMatches);
+      const token = await getToken(); 
+      if (!token) {
+        console.error("No Clerk token found"); 
+        return;
+      }
+
+      try {
+        const res = await axios.get("http://localhost:5000/api/user/matches", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const sortedMatches = res.data.sort((a, b) => {
+          const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+          const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+          return timeB - timeA;
+        });
+        setMatches(sortedMatches);
+      } catch (err) {
+        console.error("Failed to fetch matches:", err.response?.data || err.message);
+        setMatches([]);
+      }
     };
+
     fetchMatches();
-  }, []);
+  }, [user, clerk]);
 
   return (
     <div className="flex flex-wrap gap-4 p-4 justify-center">

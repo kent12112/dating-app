@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import axios from "axios";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 // Helper function: Haversine formula (distance in km)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -26,6 +27,13 @@ const MatchingGrid = () => {
   const [locationDenied, setLocationDenied] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const { user } = useUser();
+  const clerk = useClerk();
+
+  async function getToken() {
+    return await clerk.session.getToken();
+  }
+
   // Load cached location from localStorage
   function getCachedLocation() {
     try {
@@ -44,13 +52,13 @@ const MatchingGrid = () => {
 
   // Fetch users + likes and sort by distance
   async function fetchAndSortUsers(lat, lon) {
-    const token = localStorage.getItem("token");
+    const token = await getToken();
     if (!token) return;
 
     try {
       const [usersRes, likesRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/user/all", { headers: { "x-auth-token": token } }),
-        axios.get("http://localhost:5000/api/user/likes-sent", { headers: { "x-auth-token": token } }),
+        axios.get("http://localhost:5000/api/user/all", { headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get("http://localhost:5000/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
       ]);
       setLikedUsers(likesRes.data.likeSent || []);
 
@@ -71,8 +79,7 @@ const MatchingGrid = () => {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!user) return;
   
     const cachedLocation = getCachedLocation();
     if (cachedLocation) {
@@ -99,10 +106,11 @@ const MatchingGrid = () => {
   
           // ✅ Always update backend location
           try {
+            const token = await getToken();
             await axios.post(
               "http://localhost:5000/api/user/location",
               { latitude, longitude },
-              { headers: { "x-auth-token": token } }
+              { headers: { "Authorization": `Bearer ${token}` } }
             );
           } catch (err) {
             console.error("Failed to update location", err);
@@ -128,17 +136,17 @@ const MatchingGrid = () => {
       setLocationDenied(true);
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   if (loading) return <div>Loading...</div>;
   if (locationDenied) return <div>Please allow location services to see other users.</div>;
 
   //handle the like request
 const handleLike = async(userId) => {
-  const token = localStorage.getItem("token");
+  const token = await getToken();
   try {
     await axios.post(`http://localhost:5000/api/user/like/${userId}`, {}, {
-      headers: {"x-auth-token": token},
+      headers: {"Authorization": `Bearer ${token}`},
     });
 
     setLikedUsers((prev) => [...prev, userId]);
