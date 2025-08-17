@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Ruler, Flag, Languages, MapPin } from "lucide-react";
 import axios from "axios";
 import Slider from "react-slick"
 import { useUser, useClerk } from "@clerk/clerk-react";;
@@ -108,22 +109,22 @@ const UserDetail = () => {
                 className="w-full max-h-[500px] object-cover rounded"
               />
             </div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4">{userData.height}</div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4">{userData.nationality}</div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4">{userData.languages}</div>
+            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Ruler className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.height}</div>
+            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Flag className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.nationality}</div>
+            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Languages className="w-5 h-5 text-gray-500 mr-[5px]"/> {userData.languages}</div>
           </div>
           {/* right side */}
           <div className="flex flex-col gap-3">
             <div>
               <div className="text-[30px] font-bold">{userData.name}, {userData.age}</div>
-              <div className="text-[20px]">{userData.location}</div>
+              <div className="text-[20px] flex items-center"><MapPin className="w-5 h-5 text-gray-500 mr-[5px]"/> {userData.location}</div>
             </div>
             <div className="bg-white border rounded flex flex-col p-4">
-              <p className="text-[20px] font-bold">About Me</p>
+              <p className="text-gray-700 text-[15px] font-bold">About Me</p>
               <p>{userData.bio}</p>
             </div>
             <div className="bg-white border rounded flex flex-col p-4">
-              <p className="text-[20px] font-bold">Looking For</p>
+              <p className="text-gray-700 text-[15px] font-bold">Looking For</p>
               <p>{userData.lookingFor}</p>
             </div>
             {/* put more photos */}

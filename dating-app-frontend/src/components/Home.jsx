@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 import HomepageVideo from "../assets/homepage-video.mp4";
 import HomepageImage1 from "../assets/homepage-image1.jpg";
+import HomepageImage2 from "../assets/homepage-image2.png";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -63,7 +64,7 @@ const Home = () => {
               <SignInButton>
                 <button className="py-[0.5px] px-2 bg-transparent text-white rounded-full">Login</button>
               </SignInButton>
-              <SignUpButton>
+              <SignUpButton forceRedirectUrl="/app/edit-profile">
                 <button className="py-[0.5px] px-2 bg-green-500 text-white rounded-full">Join</button>
               </SignUpButton>
             </SignedOut>
@@ -83,16 +84,16 @@ const Home = () => {
       </div>
       {/*SECOND SECTION */}
       <div>
-        <div className="bg-transparent mt-[70px] flex flex-col md:flex-row items-start md:items-center md:justify-between px-[40px]">
+        <div className="mt-[70px] md:mt-[0px] flex flex-col md:flex-row items-start items-center justify-between px-[40px]">
           <h1 className="font-bold text-[30px] pl-[40px]">Find love, one cup at a time.</h1>
-          <div className="text-[20px] mt-[50px] md:mt-[200px] text-left w-[500px] text-gray-700">At Ocha, we believe that dating in a new country shouldn’t be intimidating — it should be fun, authentic, and rewarding. Our app is designed specifically for foreigners in Japan, helping you connect with people who understand your experience and share your interests.</div>
+          <div className="text-[20px] mt-[50px] md:mt-[200px] md:mr-[100px] text-center w-[500px] text-gray-700">At Ocha, we believe that dating in a new country shouldn’t be intimidating — it should be fun, authentic, and rewarding. Our app is designed specifically for foreigners in Japan, helping you connect with people who understand your experience and share your interests.</div>
         </div>
         <div>
-          <div className="w-full md:w-[700px] md:ml-[50px] mt-[30px]">
+          <div className="w-full md:w-[600px] md:ml-[50px] mt-[30px]">
             <motion.img
               src={HomepageImage1}
               alt="Couple dating in Japan"
-              className="w-full shadow-lg object-cover md:rounded-lg"
+              className="w-full md:w-[600px]shadow-lg object-cover md:rounded-lg"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1}}
               viewport={{ once: true, amount: 0.5 }} // triggers when 50% visible
@@ -122,6 +123,26 @@ const Home = () => {
           </Swiper>
       </div>
       {/*FORTH SECTION */}
+      <div className="bg-transparent mt-[100px] px-6 text-center">
+        <hr className="border-gray-400 mb-[40px]" />
+        <h2 className="text-[20px] font-bold mb-8">How it works</h2>
+        <div className="flex flex-col md:flex-row items-center md:px-[100px]">
+          <div className="w-[350px] md:min-w-[400px]">
+            <motion.img
+                src={HomepageImage2}
+                alt="How it works"
+                className="shadow-lg object-cover md:rounded-lg"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1}}
+                viewport={{ once: true, amount: 0.5 }} // triggers when 50% visible
+                transition={{ duration: 3 }}
+              />
+          </div>
+          <div className="text-[20px] text-gray-700 mt-[50px] md:ml-[20px]">It's a map-based dating app that helps you discover people nearby, connect with matches in real time, and explore local events. Find love effortlessly using location-based suggestions and interactive features designed to make dating fun and easy.</div>
+        </div>
+
+      </div>
+      {/*FIFTH SECTION */}
       <div className="bg-black mt-[70px] px-6 text-center py-20 flex flex-col items-center">
         <h2 className="py-[30px] text-4xl md:text-5xl font-bold text-white mb-6">
           Ready to Find Your Match?

@@ -115,9 +115,9 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
     // Exclusion list: self, likes sent/received, matches
     const excludeIds = [
       currentUser._id,
-      ...currentUser.likeSent,
-      ...currentUser.likeReceived,
-      ...currentUser.matches,
+      ...(currentUser.likeSent || []),
+      ...(currentUser.likeReceived || []),
+      ...(currentUser.matches || []),
     ];
 
     // Fetch users not in the exclusion list
@@ -214,8 +214,26 @@ router.post('/like/:id', ClerkExpressRequireAuth(), async (req, res) => {
   const targetUser = await User.findById(req.params.id); 
 
   if (!targetUser) return res.status(404).json({ message: "User not found" });
-  if (currentUser._id.equals(targetUser._id)) return res.status(400).json({ message: "You can't like yourself" }); // CHANGED
+  if (currentUser._id.equals(targetUser._id)) return res.status(400).json({ message: "You can't like yourself" });
 
+  const isMutualLike = targetUser.likeSent.some(id => id.equals(currentUser._id));
+
+  if (isMutualLike) {
+    //if that happen, just move to match
+    // remove from like arrays
+    targetUser.likeSent = targetUser.likeSent.filter(id => !id.equals(currentUser._id));
+    currentUser.likeReceived = currentUser.likeReceived.filter(id => !id.equals(targetUser._id));
+
+    //add to matches using $addToSet logic to avoid duplicates
+    if (!currentUser.matches.some(id => id.equals(targetUser._id))) currentUser.matches.push(targetUser._id);
+    if (!targetUser.matches.some(id => id.equals(currentUser._id))) targetUser.matches.push(currentUser._id);
+
+    await currentUser.save();
+    await targetUser.save();
+
+    return res.json({message: "It's a match!"});
+  }
+  
   //prevent duplicate like
   if (currentUser.likeSent.some(id => id.equals(targetUser._id))) return res.status(400).json({ message: "Already liked this user" }); 
 

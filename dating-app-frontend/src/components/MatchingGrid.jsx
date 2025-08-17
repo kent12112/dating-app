@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 import { useUser, useClerk } from "@clerk/clerk-react";
 
@@ -26,6 +26,8 @@ const MatchingGrid = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   const { user } = useUser();
   const clerk = useClerk();
@@ -145,11 +147,17 @@ const MatchingGrid = () => {
 const handleLike = async(userId) => {
   const token = await getToken();
   try {
-    await axios.post(`http://localhost:5000/api/user/like/${userId}`, {}, {
+    const res = await axios.post(`http://localhost:5000/api/user/like/${userId}`, {}, {
       headers: {"Authorization": `Bearer ${token}`},
     });
 
     setLikedUsers((prev) => [...prev, userId]);
+
+    if (res.data.message === "It's a match!") {
+      navigate(`/app/chat/${userId}`)
+    } else {
+      console.log(res.data.message);
+    }
   } catch (err) {
     console.error("Liked failed", err);
   }

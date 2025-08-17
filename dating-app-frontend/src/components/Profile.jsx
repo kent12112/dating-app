@@ -39,7 +39,17 @@ const Profile = () => {
         const res = await axios.get("http://localhost:5000/api/user/profile", {
           headers: { Authorization: `Bearer ${token}` }, 
         });
-        setFormData(res.data);
+        setFormData({
+          name: res.data.name || "",
+          age: res.data.age || "",
+          gender: res.data.gender || "",
+          nationality: res.data.nationality || "",
+          languages: res.data.languages || "",
+          height: res.data.height || "",
+          location: res.data.location || "",
+          lookingFor: res.data.lookingFor || "",
+          bio: res.data.bio || "",
+        });
         setUploadedPhotos(res.data.photos || []);
       } catch (err) {
         console.log(err);
