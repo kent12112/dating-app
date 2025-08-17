@@ -53,12 +53,6 @@ mongoose.connect(process.env.MONGO_URI)
       console.log(`User joined room: ${roomId}`);
     });
 
-    socket.on("sendMessage", async (msg) => {
-      const newMessage = new Message(msg);
-      await newMessage.save();
-      io.to(msg.roomId).emit("receiveMessage", msg);
-    });
-
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });

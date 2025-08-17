@@ -100,8 +100,6 @@ export default function ChatWindow() {
         { recipientId: matchId, content: text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setMessages(prev => [...prev, res.data]);
       setText("");
     } catch (err) {
       console.error("Failed to send message:", err.response?.data || err.message);

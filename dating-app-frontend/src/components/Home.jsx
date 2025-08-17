@@ -1,24 +1,146 @@
-import { SignInButton, SignUpButton, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 
-const Home = () => (
-  <div className="flex flex-col items-center justify-center h-screen text-center">
-    <h1 className="text-3xl font-bold mb-4">Welcome to the Dating App</h1>
+import HomepageVideo from "../assets/homepage-video.mp4";
+import HomepageImage1 from "../assets/homepage-image1.jpg";
 
-    <SignedIn>
-      <p className="text-lg">
-        You are signed in! <a href="/app" className="text-blue-500 underline">Go to Dashboard</a>
-      </p>
-    </SignedIn>
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 
-    <SignedOut className="space-x-4">
-      <SignInButton>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded">Sign In</button>
-      </SignInButton>
-      <SignUpButton>
-        <button className="px-4 py-2 bg-green-500 text-white rounded">Sign Up</button>
-      </SignUpButton>
-    </SignedOut>
-  </div>
-);
+const testimonials = [
+  {
+    quote: "I met someone amazing through Ocha, and our first date was unforgettable!",
+    name: "Emma",
+    city: "Tokyo",
+  },
+  {
+    quote: "Dating in a new country felt scary, but Ocha made it easy.",
+    name: "Liam",
+    city: "Osaka",
+  },
+  {
+    quote: "Ocha helped me meet people who truly understand my experience abroad.",
+    name: "Sophie",
+    city: "Kyoto",
+  },
+];
+
+
+const Home = () => {
+  const {isSignedIn} = useUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate("/app")
+    }
+  }, [isSignedIn, navigate]);
+
+  return (
+    <div>
+      <div className="relative w-full h-screen overflow-hidden">
+        {/* VIDEO */}
+        <video
+          className="w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src={HomepageVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+
+        {/* HEADER */}
+        <div className="fixed inset-x-0 top-0 h-[60px] p-4 flex justify-between items-center z-50">
+          <h1 className="text-xl font-bold text-white">Ocha!</h1>
+          <div>
+            <SignedOut className="flex space-x-4">
+              <SignInButton>
+                <button className="py-[0.5px] px-2 bg-transparent text-white rounded-full">Login</button>
+              </SignInButton>
+              <SignUpButton>
+                <button className="py-[0.5px] px-2 bg-green-500 text-white rounded-full">Join</button>
+              </SignUpButton>
+            </SignedOut>
+          </div>
+        </div>
+
+        {/* TEXT at bottom */}
+        <div className="absolute bottom-[90px] w-full text-center md:text-left md:pl-[50px] text-white text-[45px] font-bold z-50 leading-tight">
+        Your Passport to Dating in Japan
+        </div>
+
+        <SignedIn>
+          <p className="absolute bottom-20 w-full text-center text-white text-lg z-50">
+            Redirecting you to the dashboard...
+          </p>
+        </SignedIn>
+      </div>
+      {/*SECOND SECTION */}
+      <div>
+        <div className="bg-transparent mt-[70px] flex flex-col md:flex-row items-start md:items-center md:justify-between px-[40px]">
+          <h1 className="font-bold text-[30px] pl-[40px]">Find love, one cup at a time.</h1>
+          <div className="text-[20px] mt-[50px] md:mt-[200px] text-left w-[500px] text-gray-700">At Ocha, we believe that dating in a new country shouldn’t be intimidating — it should be fun, authentic, and rewarding. Our app is designed specifically for foreigners in Japan, helping you connect with people who understand your experience and share your interests.</div>
+        </div>
+        <div>
+          <div className="w-full md:w-[700px] md:ml-[50px] mt-[30px]">
+            <motion.img
+              src={HomepageImage1}
+              alt="Couple dating in Japan"
+              className="w-full shadow-lg object-cover md:rounded-lg"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1}}
+              viewport={{ once: true, amount: 0.5 }} // triggers when 50% visible
+              transition={{ duration: 3 }}
+            />
+          </div>
+        </div>
+      </div>
+      {/*THIRD SECTION */}
+        <div className="bg-transparent mt-[70px] px-6 text-center">
+          <h2 className="text-[20px] font-bold mb-8">Real Love Stories</h2>
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            spaceBetween={30}
+            slidesPerView={1}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            loop={true}
+            className="!pb-12"
+          >
+            {testimonials.map((t, index) => (
+              <SwiperSlide key={index}>
+                <p className="text-xl md:text-[30px] text-gray-800 mb-4 italic">"{t.quote}"</p>
+                <span className="font-semibold">{t.name}, {t.city}</span>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+      </div>
+      {/*FORTH SECTION */}
+      <div className="bg-black mt-[70px] px-6 text-center py-20 flex flex-col items-center">
+        <h2 className="py-[30px] text-4xl md:text-5xl font-bold text-white mb-6">
+          Ready to Find Your Match?
+        </h2>
+        <div className="flex flex-col md:flex-row justify-center gap-4">
+          <SignUpButton>
+            <button className="w-[200px] px-6 py-3 bg-white text-green-900 font-bold rounded-full hover:bg-gray-100 transition">
+              Join Now
+            </button>
+          </SignUpButton>
+          <SignInButton>
+            <button className="w-[200px] px-6 py-3 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-green-900 transition">
+              Login
+            </button>
+          </SignInButton>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default Home;
