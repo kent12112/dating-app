@@ -4,6 +4,7 @@ import { Ruler, Flag, Languages, MapPin } from "lucide-react";
 import axios from "axios";
 import Slider from "react-slick"
 import { useUser, useClerk } from "@clerk/clerk-react";;
+import { Heart, HeartOff } from "lucide-react"; 
 
 const settings = {
   dots: true,
@@ -84,16 +85,12 @@ const UserDetail = () => {
           {"<"} Back
         </button>
         {fromMatches && (
-          <button
+            <button
             onClick={() => handleLike(userData._id)}
             disabled={likedUsers.includes(userData._id)}
-            className={`py-1 px-4 rounded text-white ${
-              likedUsers.includes(userData._id)
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-purple-500 hover:bg-purple-600"
-            }`}
+            className="mt-2 mr-2 py-[2px] px-[2px] rounded-2xl bg-red-400"
           >
-             {likedUsers.includes(userData._id) ? "Liked" : "Like"}
+           {likedUsers.includes(userData._id) ? (<HeartOff className="w-6 h-6 text-gray-300" />) : (<Heart className="w-6 h-6 text-white fill-white" />)}
           </button>
         )}
       </div>
@@ -129,23 +126,24 @@ const UserDetail = () => {
             </div>
             {/* put more photos */}
             {userData.photos && userData.photos.length > 1 && (
-              <Slider {...settings}>
-                {userData.photos.slice(1).map((photo, i) => (
-                  <div key={i} className="px-1">
-                    <div
-                      className="flex items-center justify-center rounded overflow-hidden"
-                      style={{ height: 250 }}
-                    >
-                      <img
-                        src={`http://localhost:5000${photo}`}
-                        alt={`Photo ${i + 1}`}
-                        className="max-w-full max-h-full object-cover rounded"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </Slider>
-            )}
+                <div className="w-full p-[10px]"> 
+                  <Slider {...settings}>
+                    {userData.photos.slice(1).map((photo, i) => (
+                      <div key={i} className="px-1">
+                        <div
+                          className="flex items-center justify-center rounded"
+                        >
+                          <img
+                            src={`http://localhost:5000${photo}`}
+                            alt={`Photo ${i + 1}`}
+                            className="rounded max-h-[400px]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
+              )}
           </div>
         </div>
     </div>

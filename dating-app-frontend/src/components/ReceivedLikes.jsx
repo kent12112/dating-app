@@ -85,7 +85,7 @@ const ReceivedLikes = () => {
               </Link>
               <button
                 onClick={() => handleMatch(u._id)}
-                className="mt-2 w-full py-1 rounded text-white bg-purple-400 hover:bg-purple-500"
+                className="mt-2 w-full py-1 rounded text-white bg-red-400 hover:bg-red-500"
               >
                 Match
               </button>

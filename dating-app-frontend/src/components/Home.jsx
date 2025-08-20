@@ -103,7 +103,7 @@ const Home = () => {
         </div>
       </div>
       {/*THIRD SECTION */}
-        <div className="bg-transparent mt-[70px] px-6 text-center">
+        <div className="bg-black px-6 mt-[70px] pt-[70px] text-center text-white">
           <h2 className="text-[20px] font-bold mb-8">Real Love Stories</h2>
           <Swiper
             modules={[Autoplay, Pagination]}
@@ -116,15 +116,14 @@ const Home = () => {
           >
             {testimonials.map((t, index) => (
               <SwiperSlide key={index}>
-                <p className="text-xl md:text-[30px] text-gray-800 mb-4 italic">"{t.quote}"</p>
+                <p className="text-xl md:text-[30px] mb-4 italic">"{t.quote}"</p>
                 <span className="font-semibold">{t.name}, {t.city}</span>
               </SwiperSlide>
             ))}
           </Swiper>
       </div>
       {/*FORTH SECTION */}
-      <div className="bg-transparent mt-[100px] px-6 text-center">
-        <hr className="border-gray-400 mb-[40px]" />
+      <div className="bg-transparent mt-[70px] px-6 text-center">
         <h2 className="text-[20px] font-bold mb-8">How it works</h2>
         <div className="flex flex-col md:flex-row items-center md:px-[100px]">
           <div className="w-[350px] md:min-w-[400px]">
@@ -138,7 +137,7 @@ const Home = () => {
                 transition={{ duration: 3 }}
               />
           </div>
-          <div className="text-[20px] text-gray-700 mt-[50px] md:ml-[20px]">It's a map-based dating app that helps you discover people nearby, connect with matches in real time, and explore local events. Find love effortlessly using location-based suggestions and interactive features designed to make dating fun and easy.</div>
+          <div className="text-[20px] text-gray-700 mt-[50px] md:ml-[20px]">It's a location-aware dating app that helps you discover people nearby, connect with matches in real time, and see how close they are. Find love effortlessly with distance-based suggestions and interactive features designed to make dating fun and easy.</div>
         </div>
 
       </div>

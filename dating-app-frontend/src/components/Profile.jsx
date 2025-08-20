@@ -2,7 +2,9 @@ import {useEffect, useState, useCallback} from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
-
+import Cropper from "react-easy-crop";
+import getCroppedImg from "./utils/cropImage.jsx"; 
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -22,6 +24,14 @@ const Profile = () => {
 
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [message, setMessage] = useState("");
+
+  // Crop states
+  const [selectedImage, setSelectedImage] = useState(null); // raw preview
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
 
   const { user: clerkUser } = useUser();
   const clerk = useClerk(); 
@@ -88,30 +98,41 @@ const Profile = () => {
     }
   };
 
-  //photo upload
-  const handlePhotoUpload = async (e) => {
-    const token = await getToken(); 
-    if (!token) return;
-    //calculate how many photos
-    const maxPhotos = 6;
-    const availableSlots = maxPhotos - uploadedPhotos.length;
+  // intercept photo upload -> open cropper
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
 
-    const files = Array.from(e.target.files)
-    if (availableSlots <= 0) {
+    if(uploadedPhotos.length >= 6) {
       setMessage("You have reached the maximum of 6 photos");
       return;
     }
-    //only allow up to availableSlots file to be uploaded
-    const filesToUpload = files.slice(0, availableSlots)
-    const formData = new FormData();
-    filesToUpload.forEach((file) => {
-      formData.append("photos", file);
-    });
 
+    const file = files[0];
+    setSelectedImage(URL.createObjectURL(file));
+    setShowCropModal(true);
+    e.target.value = null;
+  }
+  // Crop complete
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  //save cropped image
+  const handleCropSave = async () => {
+    const token = await getToken(); 
+    if (!token || !croppedAreaPixels || !selectedImage) return;
     try {
+      setLoading(true);
+
+      const croppedImage = await getCroppedImg(selectedImage, croppedAreaPixels);
+      const formDataUpload = new FormData();
+      formDataUpload.append("photos", croppedImage);
+
+
       const res = await axios.post(
         "http://localhost:5000/api/user/upload",
-        formData,
+        formDataUpload,
         {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -121,10 +142,13 @@ const Profile = () => {
       );
       setUploadedPhotos(res.data.photos);
       setMessage(res.data.msg || "Photos uploaded!");
-      e.target.value = null;
     } catch (err) {
       console.error(err);
       setMessage("Photo upload failed");
+    } finally {
+      setLoading(false);
+      setShowCropModal(false);
+      setSelectedImage(null);
     }
   };
 
@@ -152,6 +176,29 @@ const Profile = () => {
     }
   }
 
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const items = Array.from(uploadedPhotos);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setUploadedPhotos(items);
+
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      await axios.put(
+        "http://localhost:5000/api/user/photos/order",
+        { photos: items },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    } catch (err) {
+      console.error("Failed to save photo order:", err);
+    }
+  }
+
+
   return (
     <div className="flex flex-col md:flex-row gap-4">
        {/*LEFT SIDE*/}
@@ -166,34 +213,80 @@ const Profile = () => {
             id="photo-upload"
             type="file"
             accept="image/*"
-            multiple
+            multiple={false}
             onChange={handlePhotoUpload}
             className="hidden"
             />
         </div>
         {/* uploaded photo previews*/}
-        {uploadedPhotos.length > 0 && (
-          <div className="flex flex-wrap gap-4 w-full rounded-md justify-center">
-            {uploadedPhotos.map((url, idx) => (
-              <div key={idx} className="relative">
-                <img
-                  key={idx}
-                  src={`http://localhost:5000${url}`}
-                  alt={`Uploaded ${idx}`}
-                  className="w-[200px] h-[300px] object-cover"
-                />
-                <button
-                  onClick={() => handleDeletePhoto(url)}
-                  className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
-                  title="Delete photo"
-                  >
-                  x
-                </button>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="photos" direction="horizontal">
+            {(provided) => (
+              <div
+                className="flex flex-wrap gap-4 items-center justify-center overflow-hidden"
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                {uploadedPhotos.map((url, index) => (
+                  <Draggable key={url} draggableId={url} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="relative"
+                      >
+                        <img
+                          src={`http://localhost:5000${url}`}
+                          alt={`Uploaded ${index}`}
+                          className="w-[200px] h-[300px] object-cover"
+                        />
+                        <button
+                          onClick={() => handleDeletePhoto(url)}
+                          className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
+                          title="Delete photo"
+                        >
+                          x
+                        </button>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
-            ))}
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+        {/* Crop Modal */}
+        {showCropModal && selectedImage && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="w-[400px] h-[400px] bg-black p-4 rounded-md relative">
+            <Cropper
+              image={selectedImage}
+              crop={crop}               // use state
+              zoom={zoom}               // use state
+              aspect={2 / 3}
+              onCropChange={setCrop}    // update state on drag
+              onZoomChange={setZoom}    // optional: update zoom
+              onCropComplete={onCropComplete}
+              />
+              <button
+                onClick={handleCropSave}
+                disabled={loading}
+                className="absolute top-2 left-2  px-2 py-1 bg-gray-600 text-white rounded"
+              >
+                {loading ? "Uploading..." : "Save"}
+              </button>
+              <button
+                onClick={() => setShowCropModal(false)}
+                className="absolute top-2 right-2 px-2 py-1 text-red-500"
+              >
+                X
+              </button>
+            </div>
           </div>
         )}
-      </div>
       {/* Profile form */}
         {/*RIGHT SIDE*/}
       <form onSubmit={handleSubmit} className="md:basis-8/12">

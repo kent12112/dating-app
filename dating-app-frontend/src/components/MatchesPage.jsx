@@ -61,7 +61,7 @@ export default function MatchesPage() {
           />
           <div className="ml-4 flex flex-col flex-1">
             <h2 className="text-lg text-black font-semibold ml-4">{match.name}</h2>
-            <p className="text-sm text-gray-600 truncate">
+            <p className="text-sm text-gray-600 truncate ml-[30px]">
               {match.lastMessage || ""}
             </p>
           </div>

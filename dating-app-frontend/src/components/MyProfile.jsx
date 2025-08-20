@@ -55,7 +55,7 @@ const MyProfile = () => {
               ? `http://localhost:5000${userData.photos[0]}`
               : `http://localhost:5000/uploads/default-photo.jpg`} 
             alt={userData.name}
-            className="w-full max-h-[500px] object-cover rounded"
+            className="max-h-[400px] rounded"
           />
         </div>
         <div className="h-[50px] bg-white border rounded flex items-center p-4"><Ruler className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.height}</div>
@@ -76,24 +76,25 @@ const MyProfile = () => {
             <p className="text-gray-700 text-[15px] font-bold">Looking For</p>
             <p>{userData.lookingFor}</p>
           </div>
-        {/* put more photos */}
-        {userData.photos && userData.photos.length > 1 && (
-              <Slider {...settings}>
-                {userData.photos.slice(1).map((photo, i) => (
-                  <div key={i} className="px-1">
-                    <div
-                      className="flex items-center justify-center rounded overflow-hidden"
-                      style={{ height: 250 }}
-                    >
-                      <img
-                        src={`http://localhost:5000${photo}`}
-                        alt={`Photo ${i + 1}`}
-                        className="max-w-full max-h-full object-cover rounded"
-                      />
+          {/* put more photos */}
+          {userData.photos && userData.photos.length > 1 && (
+              <div className="w-full p-[10px]"> 
+                <Slider {...settings}>
+                  {userData.photos.slice(1).map((photo, i) => (
+                    <div key={i} className="px-1">
+                      <div
+                        className="flex items-center justify-center rounded"
+                      >
+                        <img
+                          src={`http://localhost:5000${photo}`}
+                          alt={`Photo ${i + 1}`}
+                          className="rounded max-h-[400px]"
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </Slider>
+                  ))}
+                </Slider>
+              </div>
             )}
       </div>
     </div>

@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { Heart, HeartOff } from "lucide-react"; 
 
 // Helper function: Haversine formula (distance in km)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -181,7 +182,7 @@ const handleLike = async(userId) => {
                       : `http://localhost:5000/uploads/default-photo.jpg`
                       } 
                     alt={user.name} 
-                    className="w-[180px] h-[200px] object-cover rounded"/>
+                    className="w-[170px] h-[220px] object-cover rounded"/>
             </div>
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-black">
@@ -194,17 +195,15 @@ const handleLike = async(userId) => {
               </span>
             </div>
           </Link>
-          <button
-            onClick={() => handleLike(user._id)}
-            disabled={likedUsers.includes(user._id)}
-            className={`mt-2 w-full py-1 rounded text-white ${
-              likedUsers.includes(user._id)
-                ? "bg-gray-400 cursor-not-allowed" // ✅ style for already liked
-                : "bg-purple-500 hover:bg-purple-600"
-            }`}
-          >
-          {likedUsers.includes(user._id) ? "Liked" : "Like"}
-          </button>
+          <div className="flex w-full justify-end">
+            <button
+              onClick={() => handleLike(user._id)}
+              disabled={likedUsers.includes(user._id)}
+              className="mt-2 mr-2 py-[2px] px-[2px] rounded-2xl bg-red-400"
+            >
+            {likedUsers.includes(user._id) ? (<HeartOff className="w-6 h-6 text-gray-300" />) : (<Heart className="w-6 h-6 text-white fill-white" />)}
+            </button>
+          </div>
         </div>
       ))}
     </div>

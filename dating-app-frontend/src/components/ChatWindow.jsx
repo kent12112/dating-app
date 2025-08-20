@@ -109,74 +109,75 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col  h-[80vh]">
-      {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b bg-gray-100">
-        <button
-          onClick={() => navigate(-1)}
-          className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
-        >
-         X
-        </button>
-        <div>
-          <Link to={`/app/user/${matchId}`} className="text-black font-bold">{userName}</Link>
+    <div className="flex justify-center">
+      <div className="flex flex-col h-[80vh] w-[600px] bg-gray-100">
+        {/* Header */}
+        <div className="flex items-center justify-between p-2 border-b bg-gray-100">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+          >
+          X
+          </button>
+          <div>
+            <Link to={`/app/user/${matchId}`} className="text-black font-bold">{userName}</Link>
+          </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
-        {messages.map((msg, idx) => {
-           const isMe = msg.senderClerkId === user.id;
-           const date = msg.createdAt
-           ? format(parseISO(msg.createdAt), "MM/dd/yyyy")
-           : "";
-          const time = msg.createdAt
-            ? format(parseISO(msg.createdAt), "hh:mm a")
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          {messages.map((msg, idx) => {
+            const isMe = msg.senderId === currentUserId;
+            const date = msg.createdAt
+            ? format(parseISO(msg.createdAt), "MM/dd/yyyy")
             : "";
+            const time = msg.createdAt
+              ? format(parseISO(msg.createdAt), "hh:mm a")
+              : "";
 
-          return (
-            <div
-              key={idx}
-              className={`mb-2 flex ${
-                isMe ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div className="flex flex-col max-w-[70%]">
-                <div
-                  className={`p-2.5 rounded-2xl ${
-                    isMe
-                      ? "bg-purple-500 text-white text-right"
-                      : "bg-gray-300 text-left"
-                  }`}
-                >
-                  {msg.content}
-                </div>
-                <div className="text-xs text-gray-400 mt-1 text-right">
-                    {date}
-                </div>
-                <div className="text-xs text-gray-400 mt-1 text-right">
-                    {time}
+            return (
+              <div
+                key={idx}
+                className={`mb-2 flex ${
+                  isMe ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div className="flex flex-col max-w-[70%]">
+                  <div
+                    className={`p-2.5 rounded-2xl break-words whitespace-pre-wrap ${
+                      isMe
+                        ? "bg-green-500 text-white text-right"
+                        : "bg-gray-300 text-left"
+                    }`}
+                  >
+                    <div className="text-left">{msg.content}</div>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1 text-right">
+                      {date}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1 text-right">
+                      {time}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={bottomRef} />
-      </div>
-      <div className="p-3 border-t flex">
-        <input
-          value={text}
-          onChange={e => setText(e.target.value)}
-          className="flex-1 border p-2 rounded mr-2 bg-gray-300"
-          placeholder="Text..."
-        />
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          className="bg-purple-500 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Sending..." : "Send"}
-        </button>
+            );
+          })}
+          <div ref={bottomRef} />
+        </div>
+        <div className="p-3 border-t flex">
+          <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            className="flex-1 border p-2 rounded mr-2 bg-gray-300"
+            placeholder="Text..."
+          />
+          <button
+            onClick={sendMessage}
+            disabled={loading}
+            className="bg-green-900 text-white px-4 py-2 rounded"
+          >
+            {loading ? "Sending..." : "Send"}
+          </button>
+        </div>
       </div>
     </div>
-
   )
 }

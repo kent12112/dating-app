@@ -26,8 +26,8 @@ router.post('/send', ClerkExpressRequireAuth(), async (req, res) => {
     }
 
     const newMessage = new Message({
-      senderClerkId: sender.clerkId,
-      recipientClerkId: recipient.clerkId,
+      senderId: sender._id,
+      recipientId: recipient._id,
       content,
       roomId: [sender._id, recipientId].sort().join("_"),
     });
@@ -70,8 +70,8 @@ router.get('/conversation/:userId', ClerkExpressRequireAuth(), async (req, res) 
 
   const messages = await Message.find({
     $or: [
-      { senderClerkId: currentUser.clerkId, recipientClerkId: otherUser.clerkId },
-      { senderClerkId: otherUser.clerkId, recipientClerkId: currentUser.clerkId }
+      { senderId: currentUser._id, recipientId: otherUser._id },
+      { senderId: otherUser._id, recipientId: currentUser._id }
     ]
   }).sort('createdAt');
 

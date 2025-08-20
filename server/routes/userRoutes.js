@@ -173,6 +173,33 @@ router.post("/upload", ClerkExpressRequireAuth(), upload.array("photos", 6), asy
   }
 })
 
+// PUT /api/user/photos/order
+router.put("/photos/order",  ClerkExpressRequireAuth(), async (req, res) => {
+  const {photos} = req.body;
+  if (!Array.isArray(photos)){
+    return res.status(400).json({ msg: "Photos array is required" });
+  }
+  try {
+    const user = await User.findOne({ clerkId: req.auth.userId });
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Ensure all photo paths exist in the current user's photos
+    const allExist = photos.every((p) => user.photos.includes(p));
+    if (!allExist) {
+      return res.status(400).json({ msg: "Invalid photo paths in array" });
+    }
+
+    // Save new order
+    user.photos = photos;
+    await user.save();
+
+    res.json({ msg: "Photo order updated", photos: user.photos });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to update photo order" });
+  }
+});
+
 //DELETE /api/user/photo
 router.delete("/photo", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
@@ -308,14 +335,19 @@ router.get('/matches', ClerkExpressRequireAuth(), async (req, res) => {
       currentUser.matches.map(async (match) => {
         const lastMsg = await Message.findOne({ // CHANGED
           $or: [
-            { sender: userId, recipient: match._id },
-            { sender: match._id, recipient: userId }
+            { senderId: userId, recipientId: match._id },
+            { senderId: match._id, recipientId: userId }
           ]
         }).sort({ createdAt: -1 }).limit(1);
+      
+        const truncate = (text, maxLen = 40) => {
+          if (!text) return null;
+          return text.length > maxLen ? text.substring(0, maxLen) + "..." : text;
+        };
 
         return {
           ...match.toObject(),
-          lastMessage: lastMsg ? lastMsg.content : null,
+          lastMessage: lastMsg ? truncate(lastMsg.content) : null,
           lastMessageTime: lastMsg ? lastMsg.createdAt : null,
         };
       })

@@ -3,13 +3,15 @@ const { Schema } = mongoose;
 
 const messageSchema = new Schema(
   {
-    senderClerkId: {
-      type: String,
+    senderId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    recipientClerkId: {
-      type: String,
-      required: false,
+    recipientId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     content: {
       type: String,
