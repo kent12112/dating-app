@@ -1,10 +1,12 @@
-import {useEffect, useState} from "react";
+import {useEffect, useState, useMemo} from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Ruler, Flag, Languages, MapPin } from "lucide-react";
 import axios from "axios";
 import Slider from "react-slick"
 import { useUser, useClerk } from "@clerk/clerk-react";;
 import { Heart, HeartOff } from "lucide-react"; 
+import ISO6391 from "iso-639-1";
+import countryList from "react-select-country-list";
 
 const settings = {
   dots: true,
@@ -21,6 +23,7 @@ const UserDetail = () => {
   const {id} = useParams();
   const { user } = useUser();
   const clerk = useClerk();
+  const options = useMemo(() => countryList().getData(), []);
 
   const fromMatches = location.state?.fromMatches === true;
   const [userData, setUserData] = useState(null);
@@ -106,9 +109,15 @@ const UserDetail = () => {
                 className="w-full max-h-[500px] object-cover rounded"
               />
             </div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Ruler className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.height}</div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Flag className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.nationality}</div>
-            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Languages className="w-5 h-5 text-gray-500 mr-[5px]"/> {userData.languages}</div>
+            <div className="h-[50px] bg-white border rounded flex items-center p-4"><Ruler className="w-5 h-5 text-gray-500 mr-[5px]"/>{userData.height} cm</div>
+            <div className="h-[50px] bg-white border rounded flex items-center p-4">
+              <Flag className="w-5 h-5 text-gray-500 mr-[5px]"/>
+              {options.find(opt => opt.value === userData.nationality)?.label || ""}
+            </div>
+            <div className="min-h-[50px] bg-white border rounded flex items-center p-4">
+              <Languages className="w-5 h-5 text-gray-500 mr-[5px]"/> 
+              {(userData.languages || []).map(code => ISO6391.getName(code)).join(', ')}
+            </div>
           </div>
           {/* right side */}
           <div className="flex flex-col gap-3">

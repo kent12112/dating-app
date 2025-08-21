@@ -36,6 +36,8 @@ import userRoutes from "./routes/userRoutes.js";
 app.use("/api/user", userRoutes);
 import messageRoute from "./routes/messageRoute.js";
 app.use('/api/messages', messageRoute);
+import webhookRoutes from "./routes/webhooks.js";
+app.use("/api/webhooks", webhookRoutes);
 //this connects your auth-related routes to the path /api/auth
 //Eg. POST /api/auth/register will hit your register controller function
 app.use("/uploads", express.static('uploads'))

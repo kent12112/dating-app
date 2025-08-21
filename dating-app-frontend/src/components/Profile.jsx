@@ -5,17 +5,41 @@ import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "./utils/cropImage.jsx"; 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+import ISO6391 from "iso-639-1";
+import React, { useMemo } from "react";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const options = useMemo(() => countryList().getData(), []);
+  const languageOptions = ISO6391.getAllCodes().map(code => ({
+    value: code, 
+    label: ISO6391.getName(code)
+  }));
+  const ageOptions = Array.from({ length: 83 }, (_, i) => ({
+    value: i + 18,
+    label: `${i + 18}`,
+  }));
+  const heightOptions = Array.from({ length: 91 }, (_, i) => ({
+    value: i + 140, // 140 cm to 230 cm
+    label: `${i + 140} cm`,
+  }));
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "non-binary", label: "Non-binary" },
+    { value: "other", label: "Other" },
+    { value: "prefer-not-to-say", label: "Prefer not to say" }
+  ];
   //this local state holds the editable form values
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     gender: "",
     nationality: "",
-    languages: "",
+    languages: [],
     height: "",
     location: "",
     lookingFor: "",
@@ -296,23 +320,69 @@ const Profile = () => {
         </div>
         <p className="w-full font-semibold">Age</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="age" value={formData.age || ""} onChange={handleChange} placeholder="Age" className="bg-white w-full h-[40px]"/>
+          <Select
+            options={ageOptions}
+            value={ageOptions.find(opt => opt.value === formData.age) || null}
+            onChange={(selected) => 
+              setFormData(prev => ({...prev, age: selected?.value || ""}))
+            }
+            placeholder="Select age..."
+            isClearable
+          >
+
+          </Select>
         </div>
         <p className="w-full font-semibold">Gender</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="gender" value={formData.gender || ""} onChange={handleChange} placeholder="Gender" className="bg-white  w-full h-[40px]"/>
+          <Select
+            options={genderOptions}
+            value={genderOptions.find(opt => opt.value === formData.gender) || null}
+            onChange={(selected) =>
+              setFormData(prev => ({ ...prev, gender: selected?.value || "" }))
+            }
+            placeholder="Select gender..."
+            isClearable
+          />
         </div>
         <p className="w-full font-semibold">Nationality</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="nationality" value={formData.nationality || ""} onChange={handleChange} placeholder="Nationality" className="bg-white  w-full h-[40px]"/>
+          <Select
+            options={options}
+            value={options.find(opt => opt.value === formData.nationality) || null}
+            onChange={(selected) =>
+              setFormData(prev => ({...prev, nationality: selected?.value || ""}))
+            }
+            placeholder="Select nationality..."
+            isClearable
+          >
+          </Select>
         </div>
         <p className="w-full font-semibold">Languages</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="languages" value={formData.languages || ""} onChange={handleChange} placeholder="Languages" className="bg-white  w-full h-[40px]"/>
+          <Select
+            options={languageOptions}
+            value={languageOptions.filter(opt => (formData.languages || []).includes(opt.value))}
+            onChange={(selected) => 
+              setFormData(prev => ({
+                ...prev, 
+                languages: selected ? selected.map(opt => opt.value) : []
+              }))
+            }
+            isMulti
+            placeholder="Select languages..."
+          />
         </div>
         <p className="w-full font-semibold">Height</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="height" value={formData.height || ""} onChange={handleChange} placeholder="Height" className="bg-white  w-full h-[40px]"/>
+          <Select
+            options={heightOptions}
+            value={heightOptions.find(opt => opt.value === formData.height) || null}
+            onChange={(selected) =>
+              setFormData(prev => ({ ...prev, height: selected?.value || "" }))
+            }
+            placeholder="Select height..."
+            isClearable
+          />
         </div>
         <p className="w-full font-semibold">Where do you live?</p>
         <div className="border border-solid border-gray-400 mb-2">
