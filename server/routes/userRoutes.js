@@ -28,14 +28,17 @@ router.post("/init", ClerkExpressRequireAuth(), async (req, res) => {
     const email = clerkUser.emailAddresses?.[0]?.emailAddress || "";
 
     let user = await User.findOne({ clerkId });
+    let isNewUser = false;
 
     if (!user) {
+      isNewUser = true;
       user = new User({
         clerkId,
         email,
         name: "",
         age: null,
-        gender: "",
+        gender: "temp", //temporary default
+        orientation: ["temp"], //temporary default
         nationality: "",
         languages: [],
         lookingFor: "",
@@ -50,7 +53,7 @@ router.post("/init", ClerkExpressRequireAuth(), async (req, res) => {
       await user.save();
     }
 
-    res.json(user);
+    res.json({user, isNewUser});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to initialize user" });
@@ -83,6 +86,7 @@ router.put("/profile", ClerkExpressRequireAuth(), async (req, res) => {
       name: req.body.name,
       age: req.body.age,
       gender: req.body.gender,
+      orientation: req.body.orientation,
       nationality: req.body.nationality,
       languages: req.body.languages,
       location: req.body.location,
@@ -106,7 +110,7 @@ router.put("/profile", ClerkExpressRequireAuth(), async (req, res) => {
 //GET all other users
 router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches");
+    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches gender orientation");
 
     if (!currentUser) {
       return res.status(404).json({ msg: "Current user not found" });
@@ -120,9 +124,11 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
       ...(currentUser.matches || []),
     ];
 
-    // Fetch users not in the exclusion list
+    // Fetch users not in the exclusion list and gender orientation separation
     const users = await User.find({
-      _id: { $nin: excludeIds }
+      _id: { $nin: excludeIds },
+      gender: { $in: currentUser.orientation},
+      orientation: { $in: [currentUser.gender]}
     }).select("-password");
 
     res.json(users);

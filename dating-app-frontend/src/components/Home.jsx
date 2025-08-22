@@ -64,7 +64,7 @@ const Home = () => {
               <SignInButton>
                 <button className="py-[0.5px] px-2 bg-transparent text-white rounded-full">Login</button>
               </SignInButton>
-              <SignUpButton forceRedirectUrl="/app/edit-profile">
+              <SignUpButton forceRedirectUrl="/app/">
                 <button className="py-[0.5px] px-2 bg-green-500 text-white rounded-full">Join</button>
               </SignUpButton>
             </SignedOut>

@@ -1,13 +1,16 @@
 import {Link, Outlet, useNavigate} from "react-router-dom";
 import { UserButton, useUser, useAuth } from "@clerk/clerk-react"; // Clerk user menu
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 //Outlet: tells the app, render the child route compoent here
 
 const DashboardLayout = () => {
   const { user } = useUser(); 
   const { getToken } = useAuth();
   const navigate = useNavigate(); 
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (!user || initialized) return; // only run once
+    setInitialized(true);
     async function initUser() {
       if (!user) return;
 
@@ -16,12 +19,16 @@ const DashboardLayout = () => {
         const token = await getToken();
 
         // Use the token in your API request
-        await fetch("http://localhost:5000/api/user/init", {
+        const response = await fetch("http://localhost:5000/api/user/init", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        const userData = await response.json();
+        if (userData.isNewUser){
+          navigate("/app/edit-profile");
+        }
       } catch (error) {
         console.error("Failed to initialize user –", error);
       }

@@ -30,14 +30,13 @@ const Profile = () => {
     { value: "male", label: "Male" },
     { value: "female", label: "Female" },
     { value: "non-binary", label: "Non-binary" },
-    { value: "other", label: "Other" },
-    { value: "prefer-not-to-say", label: "Prefer not to say" }
   ];
   //this local state holds the editable form values
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     gender: "",
+    orientation: [],
     nationality: "",
     languages: [],
     height: "",
@@ -77,6 +76,7 @@ const Profile = () => {
           name: res.data.name || "",
           age: res.data.age || "",
           gender: res.data.gender || "",
+          orientation: res.data.orientation || "",
           nationality: res.data.nationality || "",
           languages: res.data.languages || "",
           height: res.data.height || "",
@@ -332,18 +332,41 @@ const Profile = () => {
 
           </Select>
         </div>
-        <p className="w-full font-semibold">Gender</p>
-        <div className="border border-solid border-gray-400 mb-2">
-          <Select
-            options={genderOptions}
-            value={genderOptions.find(opt => opt.value === formData.gender) || null}
-            onChange={(selected) =>
-              setFormData(prev => ({ ...prev, gender: selected?.value || "" }))
-            }
-            placeholder="Select gender..."
-            isClearable
-          />
-        </div>
+        {/* Conditionally show Sex and Gender fields */}
+        {formData.gender === "temp" && (formData.orientation || []).includes("temp") && (
+          <div className="mb-4">
+            <p className="w-full font-semibold">Gender</p>
+            <div className="border border-solid border-gray-400 mb-2">
+              <Select
+                options={genderOptions}
+                value={genderOptions.find(opt => opt.value === formData.gender) || null}
+                onChange={(selected) =>
+                  setFormData(prev => ({ ...prev, gender: selected?.value || "" }))
+                }
+                placeholder="Select gender..."
+                required
+              />
+            </div>
+
+            <p className="w-full font-semibold">Interested in...</p>
+            <div className="border border-solid border-gray-400 mb-2">
+              <Select
+                options={genderOptions}
+                value={genderOptions.filter(opt => (formData.orientation || []).includes(opt.value))}
+                onChange={(selected) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    orientation: selected ? selected.map(opt => opt.value) : []
+                  }))
+                }
+                placeholder="Interested in..."
+                isMulti
+                isClearable={false}
+                required
+              />
+            </div>
+          </div>
+        )}
         <p className="w-full font-semibold">Nationality</p>
         <div className="border border-solid border-gray-400 mb-2">
           <Select

@@ -3,11 +3,12 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema({
   clerkId: { type: String, required: true, unique: true }, // store Clerk user ID
   email: { type: String, required: true, unique: true },
+  gender: { type: String, required: true, default: ""},
+  orientation: { type: [String], required: true, default: []},
   name: String,
   location: String,
   height: String,
   age: Number,
-  gender: String,
   nationality: String,
   languages: [String],
   lookingFor: String,
