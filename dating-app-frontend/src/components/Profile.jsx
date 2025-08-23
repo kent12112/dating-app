@@ -229,9 +229,16 @@ const Profile = () => {
       <div className="md:basis-4/12">
         {/*Upload button*/}
         <div>
-          <label 
-            className="text-3xl text-gray-500 hover:text-purple-600 cursor-pointer transition-colors duration-300 select-none"
-            htmlFor="photo-upload">+
+          <p className="w-full font-semibold">Photos</p>
+          <label
+            className={`text-3xl cursor-pointer transition-colors duration-300 select-none ${
+              uploadedPhotos.length >= 6
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-500 hover:text-purple-600"
+            }`}
+            htmlFor={uploadedPhotos.length >= 6 ? "" : "photo-upload"}
+          >
+            +
           </label>
           <input
             id="photo-upload"

@@ -75,7 +75,10 @@ const ReceivedLikes = () => {
               >
                 <div className="flex justify-center">
                   <img 
-                    src={`http://localhost:5000${u.photos?.[0] || 'default-photo.jpg'}`}
+                    src={u.photos && u.photos.length > 0
+                      ? `http://localhost:5000${u.photos[0]}`
+                      : `http://localhost:5000/uploads/default-photo.jpg`
+                      } 
                     alt={u.name} 
                     className="w-[180px] h-[200px] object-cover rounded" />
                 </div>
