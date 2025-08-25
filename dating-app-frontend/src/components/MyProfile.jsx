@@ -75,7 +75,7 @@ const MyProfile = () => {
         <div className="flex flex-col gap-3">
           <div>
             <div className="text-[30px] font-bold">{userData.name}, {userData.age}</div>
-            <div className="text-[20px] flex items-center"><MapPin className="w-5 h-5 text-gray-500 mr-[5px]"/> {userData.location}</div>
+            <div className="text-[20px] flex items-center"><MapPin className="w-5 h-5 text-gray-500 mr-[5px]"/> {userData.locationName}</div>
           </div>
           <div className="bg-white border rounded flex flex-col p-4">
             <p className="text-gray-700 text-[15px] font-bold">About Me</p>

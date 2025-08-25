@@ -54,7 +54,7 @@ const MatchingGrid = () => {
   }
 
   // Fetch users + likes and sort by distance
-  async function fetchAndSortUsers(lat, lon) {
+  async function fetchUsers(lat, lon) {
     const token = await getToken();
     if (!token) return;
 
@@ -66,14 +66,18 @@ const MatchingGrid = () => {
       setLikedUsers(likesRes.data.likeSent || []);
 
       const sortedUsers = usersRes.data
-        .filter(u => u.latitude != null && u.longitude != null)
-        .map(user => ({
-          ...user,
-          distance: getDistanceFromLatLonInKm(lat, lon, user.latitude, user.longitude),
-        }))
+        .filter(u => u.location?.coordinates?.length === 2)
+        .map(user => {
+          const [longitude, latitude] = user.location.coordinates; 
+          return {
+            ...user,
+            distance: getDistanceFromLatLonInKm(lat, lon, latitude, longitude), 
+          };
+        })
         .sort((a, b) => a.distance - b.distance);
 
       setUsers(sortedUsers);
+
     } catch (err) {
       console.error("Failed to fetch users:", err);
     } finally {
@@ -87,7 +91,7 @@ const MatchingGrid = () => {
     const cachedLocation = getCachedLocation();
     if (cachedLocation) {
       setCurrentLocation(cachedLocation);
-      fetchAndSortUsers(cachedLocation.latitude, cachedLocation.longitude);
+      fetchUsers(cachedLocation.latitude, cachedLocation.longitude);
     } else {
       setLoading(true);
     }
@@ -120,7 +124,7 @@ const MatchingGrid = () => {
           }
 
           // ✅ Always fetch users
-          fetchAndSortUsers(latitude, longitude);
+          fetchUsers(latitude, longitude);
   
           // ✅ Only update cache & re-sort if moved far enough
           if (movedFar) {
@@ -190,8 +194,8 @@ const handleLike = async(userId) => {
               </h2>
               <span className="text-sm text-gray-600">
                 {user.distance >= 1
-                  ? `${user.distance.toFixed(1)} km`
-                  : `${Math.round(user.distance * 1000)} m`}
+                    ? `${user.distance.toFixed(1)} km`
+                    : `${Math.round(user.distance * 1000)} m`}
               </span>
             </div>
           </Link>

@@ -43,8 +43,11 @@ router.post("/init", ClerkExpressRequireAuth(), async (req, res) => {
         languages: [],
         lookingFor: "",
         bio: "",
-        latitude: null,
-        longitude: null,
+        locationName: "",
+        location: {
+          type: "Point",
+          coordinates: [0, 0]
+        },
         photos: [],
         likeSent: [],
         likeReceived: [],
@@ -89,7 +92,7 @@ router.put("/profile", ClerkExpressRequireAuth(), async (req, res) => {
       orientation: req.body.orientation,
       nationality: req.body.nationality,
       languages: req.body.languages,
-      location: req.body.location,
+      locationName: req.body.locationName,
       height: req.body.height,
       lookingFor: req.body.lookingFor,
       bio: req.body.bio,
@@ -107,14 +110,16 @@ router.put("/profile", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-//GET all other users
+//GET all other users (NEAREST 100)
 router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches gender orientation");
+    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches gender orientation location");
 
     if (!currentUser) {
       return res.status(404).json({ msg: "Current user not found" });
     }
+
+    const [lng, lat] = currentUser.location.coordinates;
 
     // Exclusion list: self, likes sent/received, matches
     const excludeIds = [
@@ -128,8 +133,18 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
     const users = await User.find({
       _id: { $nin: excludeIds },
       gender: { $in: currentUser.orientation},
-      orientation: { $in: [currentUser.gender]}
-    }).select("-password");
+      orientation: { $in: [currentUser.gender]},
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+        },
+      },
+    })
+    .select("-password")
+    .limit(100);
 
     res.json(users);
   } catch (err) {
@@ -377,10 +392,11 @@ router.post("/location", ClerkExpressRequireAuth(), async (req, res) => {
     const user = await User.findOne({ clerkId: req.auth.userId });
     if (!user) return res.status(404).json({message: "User not found"});
 
-    user.latitude = latitude;
-    user.longitude = longitude;
+    user.location = {
+      type: "Point",
+      coordinates: [longitude, latitude],
+    }
     await user.save();
-
     res.json({message: "Locaiton updated"});
   } catch (err) {
     console.error(err);
@@ -391,10 +407,11 @@ router.post("/location", ClerkExpressRequireAuth(), async (req, res) => {
 //get user's location
 router.get("/location", ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const user = await User.findOne({ clerkId: req.auth.userId }).select("latitude longitude");
+    const user = await User.findOne({ clerkId: req.auth.userId }).select("location");
     if (!user) return res.status(404).json({message: "User not found"});
 
-    res.json({latitude: user.latitude, longitude: user.longitude});
+    res.json({latitude: user.location.coordinates[1], 
+              longitude: user.location.coordinates[0]});
   } catch (err) {
     console.error(err);
     res.status(500).json({message: "Server error"});

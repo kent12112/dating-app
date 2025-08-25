@@ -6,20 +6,32 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, required: true, default: ""},
   orientation: { type: [String], required: true, default: []},
   name: String,
-  location: String,
+  locationName: String,
   height: String,
   age: Number,
   nationality: String,
   languages: [String],
   lookingFor: String,
   bio: String,
-  latitude: { type: Number, default: null },
-  longitude: { type: Number, default: null },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point"
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0],
+    },
+  },
   photos: { type: [String], default: [] },
   likeSent: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   likeReceived: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  matches: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
+  matches: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true });
+
+// Enable geospatial queries
+userSchema.index({ location: "2dsphere" });
 
 const User = mongoose.model("User", userSchema);
 export default User;

@@ -40,10 +40,13 @@ const Profile = () => {
     nationality: "",
     languages: [],
     height: "",
-    location: "",
+    locationName: "",
     lookingFor: "",
     bio: "",
   });
+
+  const [isFirstTime, setIsFirstTime] = useState(false);
+
 
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [message, setMessage] = useState("");
@@ -80,10 +83,15 @@ const Profile = () => {
           nationality: res.data.nationality || "",
           languages: res.data.languages || "",
           height: res.data.height || "",
-          location: res.data.location || "",
+          locationName: res.data.locationName || "",
           lookingFor: res.data.lookingFor || "",
           bio: res.data.bio || "",
         });
+
+        if (res.data.gender === "temp" && (res.data.orientation || []).includes("temp")) {
+          setIsFirstTime(true);
+        }
+
         setUploadedPhotos(res.data.photos || []);
       } catch (err) {
         console.log(err);
@@ -114,8 +122,8 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      setIsFirstTime(false);
       navigate("/app");
-
     } catch (err) {
       console.log(err);
       setMessage("Update failed");
@@ -340,7 +348,7 @@ const Profile = () => {
           </Select>
         </div>
         {/* Conditionally show Sex and Gender fields */}
-        {formData.gender === "temp" && (formData.orientation || []).includes("temp") && (
+        {isFirstTime && (
           <div className="mb-4">
             <p className="w-full font-semibold">Gender</p>
             <div className="border border-solid border-gray-400 mb-2">
@@ -416,7 +424,7 @@ const Profile = () => {
         </div>
         <p className="w-full font-semibold">Where do you live?</p>
         <div className="border border-solid border-gray-400 mb-2">
-          <input name="location" value={formData.location || ""} onChange={handleChange} placeholder="Location" className="bg-white w-full h-[40px]"/>
+          <input name="location" value={formData.locationName || ""} onChange={handleChange} placeholder="Location" className="bg-white w-full h-[40px]"/>
         </div>
         <p className="w-full font-semibold">What I am looking for...</p>
         <div className="border border-solid border-gray-400 mb-2">
