@@ -60,7 +60,10 @@ const MatchingGrid = () => {
 
     try {
       const [usersRes, likesRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/user/all", { headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get("http://localhost:5000/api/user/all", { 
+          headers: { "Authorization": `Bearer ${token}` },
+          params: {latitude: lat, longitude: lon}
+         }),
         axios.get("http://localhost:5000/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
       ]);
       setLikedUsers(likesRes.data.likeSent || []);

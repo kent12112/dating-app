@@ -119,7 +119,8 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
       return res.status(404).json({ msg: "Current user not found" });
     }
 
-    const [lng, lat] = currentUser.location.coordinates;
+    const lng = parseFloat(req.query.longitude) || currentUser.location.coordinates[0];
+    const lat = parseFloat(req.query.latitude) || currentUser.location.coordinates[1];
 
     // Exclusion list: self, likes sent/received, matches
     const excludeIds = [
