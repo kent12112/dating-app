@@ -90,18 +90,35 @@ const MatchingGrid = () => {
 
   useEffect(() => {
     if (!user) return;
+
+    let isComponentMounted = true;
   
     const cachedLocation = getCachedLocation();
+    
+    // If we have cached location, use it immediately and reset location denied
     if (cachedLocation) {
       setCurrentLocation(cachedLocation);
+      setLocationDenied(false); // Reset location denied state
       fetchUsers(cachedLocation.latitude, cachedLocation.longitude);
-    } else {
-      setLoading(true);
     }
   
+    // Always try to get fresh location
     if (navigator.geolocation) {
+      // Set a timeout for geolocation
+      const timeoutId = setTimeout(() => {
+        if (isComponentMounted && !cachedLocation) {
+          console.error("Geolocation timeout");
+          setLocationDenied(true);
+          setLoading(false);
+        }
+      }, 10000); // 10 second timeout
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
+          clearTimeout(timeoutId);
+          
+          if (!isComponentMounted) return;
+          
           const { latitude, longitude } = position.coords;
           setLocationDenied(false);
   
@@ -114,7 +131,7 @@ const MatchingGrid = () => {
               longitude
             ) > LOCATION_DISTANCE_THRESHOLD_KM;
   
-          // ✅ Always update backend location
+          // Always update backend location
           try {
             const token = await getToken();
             await axios.post(
@@ -126,25 +143,46 @@ const MatchingGrid = () => {
             console.error("Failed to update location", err);
           }
 
-          // ✅ Always fetch users
+          // Always fetch users with fresh location
           fetchUsers(latitude, longitude);
   
-          // ✅ Only update cache & re-sort if moved far enough
+          // Only update cache & state if moved far enough
           if (movedFar) {
             setCurrentLocation({ latitude, longitude });
             cacheLocation({ latitude, longitude });
           }
         },
         (error) => {
+          clearTimeout(timeoutId);
+          
+          if (!isComponentMounted) return;
+          
           console.error("Geolocation error", error);
-          setLocationDenied(true);
-          setLoading(false);
+          
+          // Only set location denied if we don't have cached location
+          if (!cachedLocation) {
+            setLocationDenied(true);
+            setLoading(false);
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000, // 10 seconds
+          maximumAge: 60000 // 1 minute
         }
       );
+
+      // Cleanup function
+      return () => {
+        isComponentMounted = false;
+        clearTimeout(timeoutId);
+      };
     } else {
       console.error("Geolocation not supported");
-      setLocationDenied(true);
-      setLoading(false);
+      if (!cachedLocation) {
+        setLocationDenied(true);
+        setLoading(false);
+      }
     }
   }, [user]);
 
@@ -216,6 +254,5 @@ const handleLike = async(userId) => {
     </div>
   )
 }
-
 
 export default MatchingGrid;

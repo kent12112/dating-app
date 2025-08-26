@@ -103,10 +103,32 @@ export default function ChatWindow() {
       setText("");
     } catch (err) {
       console.error("Failed to send message:", err.response?.data || err.message);
+
+      // Check if blocked
+      if (err.response?.status === 403 && err.response?.data.message === "You cannot message this user") {
+        alert("You cannot message this user. Returning to matches page.");
+        navigate(-1); 
+      }
     } finally {
       setLoading(false); // re-enable button
     }
   };
+
+  const handleBlock = async () => {
+    const token = await getToken();
+    if (!token) return;
+
+    try {
+      await axios.post(
+        `http://localhost:5000/api/user/block/${matchId}`,
+        {},
+        {headers: {Authorization: `Bearer ${token}`}}
+      )
+      navigate(-1);
+    } catch (err){
+      console.error("Failed to block user:", err);
+    }
+  }
 
   return (
     <div className="flex justify-center">
@@ -122,6 +144,12 @@ export default function ChatWindow() {
           <div>
             <Link to={`/app/user/${matchId}`} className="text-black font-bold">{userName}</Link>
           </div>
+          <button
+            onClick={handleBlock}
+            className="bg-transparent text-[13px] px-2 py-0.5 rounded text-gray-600 font-bold"
+          >
+            Unmatch
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {messages.map((msg, idx) => {

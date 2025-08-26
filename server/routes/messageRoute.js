@@ -21,6 +21,14 @@ router.post('/send', ClerkExpressRequireAuth(), async (req, res) => {
     if (!sender) return res.status(404).json({ message: "Sender not found" });
     if (!recipient) return res.status(404).json({ message: "Recipient not found" });
 
+    // 1️⃣ Block check
+    if (
+      sender.blocked.includes(recipient._id) || 
+      recipient.blocked.includes(sender._id)
+    ) {
+      return res.status(403).json({ message: "You cannot message this user" });
+    }
+
     if (!sender.matches.map(id => id.toString()).includes(recipient._id.toString())) {
       return res.status(403).json({ message: "You can only message matched users" });
     }

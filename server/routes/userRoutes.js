@@ -113,7 +113,7 @@ router.put("/profile", ClerkExpressRequireAuth(), async (req, res) => {
 //GET all other users (NEAREST 100)
 router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches gender orientation location");
+    const currentUser = await User.findOne({ clerkId: req.auth.userId }).select("likeSent likeReceived matches gender orientation location blocked");
 
     if (!currentUser) {
       return res.status(404).json({ msg: "Current user not found" });
@@ -128,6 +128,7 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
       ...(currentUser.likeSent || []),
       ...(currentUser.likeReceived || []),
       ...(currentUser.matches || []),
+      ...(currentUser.blocked || []),
     ];
 
     // Fetch users not in the exclusion list and gender orientation separation
@@ -135,6 +136,7 @@ router.get("/all", ClerkExpressRequireAuth(), async (req, res) => {
       _id: { $nin: excludeIds },
       gender: { $in: currentUser.orientation},
       orientation: { $in: [currentUser.gender]},
+      blocked: {$nin: [currentUser._id]}, // users who haven't blocked current user
       location: {
         $near: {
           $geometry: {
@@ -347,14 +349,22 @@ router.get('/likes-sent', ClerkExpressRequireAuth(), async (req, res) => {
 // GET /api/user/matches
 router.get('/matches', ClerkExpressRequireAuth(), async (req, res) => {
   try {
-    const currentUser = await User.findOne({ clerkId: req.auth.userId }).populate("matches", "name age photos");
+    const currentUser = await User.findOne({ clerkId: req.auth.userId }).populate("matches", "name age photos blocked");
     if (!currentUser) return res.status(404).json({ message: "User not found" });
 
     const userId = currentUser._id; // <-- Mongo ObjectId
 
+     // Filter out matches who are blocked or who have blocked current user
+     const filteredMatches = currentUser.matches.filter(
+      match => 
+        !currentUser.blocked?.includes(match._id) && // current user hasn’t blocked them
+        !(match.blocked?.includes(userId))          // they haven’t blocked current user
+    );
+
+
     // For each match, find the latest message between the users
     const matchesWithLastMessage = await Promise.all(
-      currentUser.matches.map(async (match) => {
+      filteredMatches.map(async (match) => {
         const lastMsg = await Message.findOne({ // CHANGED
           $or: [
             { senderId: userId, recipientId: match._id },
@@ -381,6 +391,33 @@ router.get('/matches', ClerkExpressRequireAuth(), async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch matches' });
   }
 });
+
+// POST /api/user/block/:id
+
+router.post('/block/:id', ClerkExpressRequireAuth(), async(req, res) => {
+  try {
+    const currentUser = await User.findOne({clerkId: req.auth.userId})
+    const targetUser = await User.findById(req.params.id);
+
+    if (!targetUser) return res.status(404).json({message: "User not found"});
+    if (currentUser._id.equals(targetUser._id)) return res.status(400).json({message: "You can't block yourself"});
+
+    if (!currentUser.blocked.includes(targetUser._id)) {
+      currentUser.blocked.push(targetUser._id);
+
+      currentUser.matches = currentUser.matches.filter(id => !id.equals(targetUser._id));
+      targetUser.matches = targetUser.matches.filter(id => !id.equals(currentUser._id));
+      
+      await currentUser.save();
+      await targetUser.save();
+    }
+
+    res.json({message: "User blocked successfully"})
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({message: "Failed to block user"})
+  }
+})
 
 //update user's recent location
 router.post("/location", ClerkExpressRequireAuth(), async (req, res) => {

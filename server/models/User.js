@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
   likeSent: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   likeReceived: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   matches: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User"}],
 }, { timestamps: true });
 
 // Enable geospatial queries
