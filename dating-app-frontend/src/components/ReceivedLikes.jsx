@@ -27,6 +27,7 @@ const ReceivedLikes = () => {
       try {
         const res =  await api.get("/api/user/likes-received", {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
         });
         setLikedByUsers(res.data.likes || []);
       } catch (err) {
@@ -48,7 +49,7 @@ const ReceivedLikes = () => {
       await api.post(
         `/api/user/match/${otherUserId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
       //remove matched user from the like received list
       setLikedByUsers(prev => prev.filter(user => user._id !== otherUserId));

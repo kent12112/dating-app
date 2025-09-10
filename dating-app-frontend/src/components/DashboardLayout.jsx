@@ -24,6 +24,7 @@ const DashboardLayout = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          withCredentials: true
         });
         const userData = await response.json();
         if (userData.isNewUser){

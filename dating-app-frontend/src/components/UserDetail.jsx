@@ -43,14 +43,14 @@ const UserDetail = () => {
         // Fetch user details
         const userRes = await api.get(
           `/api/user/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
+          { headers: { Authorization: `Bearer ${token}` }, withCredentials: true } // ✅ Authorization header
         );
         setUserData(userRes.data);
 
         // Fetch likes
         const likesRes = await api.get(
           `/api/user/likes-sent`,
-          { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
+          { headers: { Authorization: `Bearer ${token}` }, withCredentials: true } // ✅ Authorization header
         );
         setLikedUsers(likesRes.data.likeSent || []);
       } catch (err) {
@@ -68,7 +68,7 @@ const UserDetail = () => {
       await api.post(
         `/api/user/like/${userId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
       setLikedUsers((prev) => [...prev, userId]);
     } catch (err) {

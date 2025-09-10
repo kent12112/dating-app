@@ -27,6 +27,7 @@ export default function MatchesPage() {
       try {
         const res = await api.get("/api/user/matches", {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
         });
         const sortedMatches = res.data.sort((a, b) => {
           const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;

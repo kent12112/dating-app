@@ -75,6 +75,7 @@ const Profile = () => {
       try {
         const res = await api.get("/api/user/profile", {
           headers: { Authorization: `Bearer ${token}` }, 
+          withCredentials: true
         });
         setFormData({
           name: res.data.name || "",
@@ -121,6 +122,7 @@ const Profile = () => {
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
         }
       );
       setIsFirstTime(false);
@@ -171,6 +173,7 @@ const Profile = () => {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
+          withCredentials: true
         }
       );
       setUploadedPhotos(res.data.photos);
@@ -195,11 +198,13 @@ const Profile = () => {
         {
           headers: { Authorization: `Bearer ${token}` },
           data: { photoUrl: photoId } , // send photo path in body
+          withCredentials: true
         }
       );
       //refetch user profile
       const res = await api.get("/api/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
       });
       setUploadedPhotos(res.data.photos || []);
       setMessage("Photo deleted!");
@@ -224,7 +229,7 @@ const Profile = () => {
       await api.put(
         "/api/user/photos/order",
         { photos: items.map(p=>p.public_id) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       )
     } catch (err) {
       console.error("Failed to save photo order:", err);

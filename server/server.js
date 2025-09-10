@@ -15,7 +15,23 @@ const app = express(); //Create express app
 //If you try to use process.env.MONGO_URI before calling dotenv.config(), it will be undefined.
 
 //apply middleware
-app.use(cors()); // enables CORS
+const allowedOrigins = [
+  "http://localhost:5173", // your local frontend
+  "https://dating-app-ocha-fvpcac766-kentos-projects-0.vercel.app" // your deployed frontend
+];
+
+app.use(cors({
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true); // allow server-to-server or Postman requests
+    if(allowedOrigins.includes(origin)){
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, // allows cookies and Authorization headers
+}));
+
 app.use(express.json()); // parses incoming JSON requests (req.body)
 //Middleware are functions that run before your route handler
 //cors(): allows request from your frontend
@@ -24,11 +40,12 @@ app.use(express.json()); // parses incoming JSON requests (req.body)
   //SOCKET.IO SETUP
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors:{
-      origin: "*", // replace with your frontend URL in production
-      methods: ["GET", "POST"]
-    }
-  })
+  cors:{
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+})
 app.set("io", io);
 
 //set up routes

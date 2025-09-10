@@ -38,6 +38,7 @@ const MyProfile = () => {
       try {
         const res = await api.get(`/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }, 
+          withCredentials: true
         });
         setUserData(res.data); 
       } catch (err) {

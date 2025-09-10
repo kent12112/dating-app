@@ -63,9 +63,10 @@ const MatchingGrid = () => {
       const [usersRes, likesRes] = await Promise.all([
         api.get("/api/user/all", { 
           headers: { "Authorization": `Bearer ${token}` },
-          params: {latitude: lat, longitude: lon}
+          params: {latitude: lat, longitude: lon},
+          withCredentials: true
          }),
-        api.get("/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
+        api.get("/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` }, withCredentials: true }),
       ]);
       setLikedUsers(likesRes.data.likeSent || []);
 
@@ -138,7 +139,7 @@ const MatchingGrid = () => {
             await api.post(
               "/api/user/location",
               { latitude, longitude },
-              { headers: { "Authorization": `Bearer ${token}` } }
+              { headers: { "Authorization": `Bearer ${token}` }, withCredentials: true }
             );
           } catch (err) {
             console.error("Failed to update location", err);
@@ -196,6 +197,7 @@ const handleLike = async(userId) => {
   try {
     const res = await api.post(`/api/user/like/${userId}`, {}, {
       headers: {"Authorization": `Bearer ${token}`},
+      withCredentials: true
     });
 
     setLikedUsers((prev) => [...prev, userId]);

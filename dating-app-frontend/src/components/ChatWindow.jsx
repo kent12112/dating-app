@@ -31,6 +31,7 @@ export default function ChatWindow() {
       if (!token) return;
   
       const res = await api.get("/api/user/me", {
+        withCredentials: true,
         headers: { Authorization: `Bearer ${token}` },
       });
       setCurrentUserId(res.data.mongoId);
@@ -47,7 +48,7 @@ export default function ChatWindow() {
       try {
         const res = await api.get(
           `/api/messages/conversation/${matchId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` }, withCredentials: true, }
         );
         setMessages(res.data.messages || []);
         setUserName(res.data.userName || "User"); // ✅ set matched user name
@@ -99,7 +100,7 @@ export default function ChatWindow() {
       const res = await api.post(
         `/api/messages/send/`,
         { recipientId: matchId, content: text },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` },  withCredentials: true}
       );
       setText("");
     } catch (err) {
@@ -123,7 +124,7 @@ export default function ChatWindow() {
       await axios.post(
         `/api/user/block/${matchId}`,
         {},
-        {headers: {Authorization: `Bearer ${token}`}}
+        {headers: {Authorization: `Bearer ${token}`}, withCredentials: true}
       )
       navigate(-1);
     } catch (err){
