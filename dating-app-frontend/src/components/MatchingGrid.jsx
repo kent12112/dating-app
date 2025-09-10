@@ -135,7 +135,7 @@ const MatchingGrid = () => {
           // Always update backend location
           try {
             const token = await getToken();
-            await axios.post(
+            await api.post(
               "/api/user/location",
               { latitude, longitude },
               { headers: { "Authorization": `Bearer ${token}` } }

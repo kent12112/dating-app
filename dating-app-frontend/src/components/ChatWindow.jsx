@@ -45,7 +45,7 @@ export default function ChatWindow() {
       if (!token) return;
 
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `/api/messages/conversation/${matchId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
