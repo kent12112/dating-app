@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { io } from "socket.io-client";
+import api from "../api"; 
 
 export default function ChatWindow() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function ChatWindow() {
       const token = await getToken();
       if (!token) return;
   
-      const res = await axios.get("http://localhost:5000/api/user/me", {
+      const res = await axios.get("/api/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCurrentUserId(res.data.mongoId);
@@ -45,7 +46,7 @@ export default function ChatWindow() {
 
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/messages/conversation/${matchId}`,
+          `/api/messages/conversation/${matchId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessages(res.data.messages || []);
@@ -96,7 +97,7 @@ export default function ChatWindow() {
 
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/messages/send/`,
+        `/api/messages/send/`,
         { recipientId: matchId, content: text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -120,7 +121,7 @@ export default function ChatWindow() {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/user/block/${matchId}`,
+        `/api/user/block/${matchId}`,
         {},
         {headers: {Authorization: `Bearer ${token}`}}
       )

@@ -72,7 +72,7 @@ const Profile = () => {
       const token = await getToken();
       if (!token) return; 
       try {
-        const res = await axios.get("http://localhost:5000/api/user/profile", {
+        const res = await axios.get("/api/user/profile", {
           headers: { Authorization: `Bearer ${token}` }, 
         });
         setFormData({
@@ -116,7 +116,7 @@ const Profile = () => {
     if (!token) return; 
     try {
       const res = await axios.put(
-        "http://localhost:5000/api/user/profile",
+        "/api/user/profile",
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -163,7 +163,7 @@ const Profile = () => {
 
 
       const res = await axios.post(
-        "http://localhost:5000/api/user/upload",
+        "/api/user/upload",
         formDataUpload,
         {
           headers: {
@@ -190,14 +190,14 @@ const Profile = () => {
     if (!token) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/user/photo`,
+        `/api/user/photo`,
         {
           headers: { Authorization: `Bearer ${token}` },
           data: { photoUrl: photoId } , // send photo path in body
         }
       );
       //refetch user profile
-      const res = await axios.get("http://localhost:5000/api/user/profile", {
+      const res = await axios.get("/api/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUploadedPhotos(res.data.photos || []);
@@ -221,7 +221,7 @@ const Profile = () => {
       if (!token) return;
 
       await axios.put(
-        "http://localhost:5000/api/user/photos/order",
+        "/api/user/photos/order",
         { photos: items.map(p=>p.public_id) },
         { headers: { Authorization: `Bearer ${token}` } }
       )

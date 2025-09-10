@@ -41,14 +41,14 @@ const UserDetail = () => {
       try {
         // Fetch user details
         const userRes = await axios.get(
-          `http://localhost:5000/api/user/${id}`,
+          `/api/user/${id}`,
           { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
         );
         setUserData(userRes.data);
 
         // Fetch likes
         const likesRes = await axios.get(
-          `http://localhost:5000/api/user/likes-sent`,
+          `/api/user/likes-sent`,
           { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
         );
         setLikedUsers(likesRes.data.likeSent || []);
@@ -65,7 +65,7 @@ const UserDetail = () => {
     const token = await getToken();
     try {
       await axios.post(
-        `http://localhost:5000/api/user/like/${userId}`,
+        `/api/user/like/${userId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

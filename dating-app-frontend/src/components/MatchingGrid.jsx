@@ -60,11 +60,11 @@ const MatchingGrid = () => {
 
     try {
       const [usersRes, likesRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/user/all", { 
+        axios.get("/api/user/all", { 
           headers: { "Authorization": `Bearer ${token}` },
           params: {latitude: lat, longitude: lon}
          }),
-        axios.get("http://localhost:5000/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get("/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
       ]);
       setLikedUsers(likesRes.data.likeSent || []);
 
@@ -135,7 +135,7 @@ const MatchingGrid = () => {
           try {
             const token = await getToken();
             await axios.post(
-              "http://localhost:5000/api/user/location",
+              "/api/user/location",
               { latitude, longitude },
               { headers: { "Authorization": `Bearer ${token}` } }
             );
@@ -193,7 +193,7 @@ const MatchingGrid = () => {
 const handleLike = async(userId) => {
   const token = await getToken();
   try {
-    const res = await axios.post(`http://localhost:5000/api/user/like/${userId}`, {}, {
+    const res = await axios.post(`/api/user/like/${userId}`, {}, {
       headers: {"Authorization": `Bearer ${token}`},
     });
 

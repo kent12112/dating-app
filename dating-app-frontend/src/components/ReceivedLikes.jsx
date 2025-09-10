@@ -24,7 +24,7 @@ const ReceivedLikes = () => {
         return
       }
       try {
-        const res =  await axios.get("http://localhost:5000/api/user/likes-received", {
+        const res =  await axios.get("/api/user/likes-received", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLikedByUsers(res.data.likes || []);
@@ -45,7 +45,7 @@ const ReceivedLikes = () => {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/user/match/${otherUserId}`,
+        `/api/user/match/${otherUserId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

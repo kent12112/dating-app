@@ -24,7 +24,7 @@ export default function MatchesPage() {
       }
 
       try {
-        const res = await axios.get("http://localhost:5000/api/user/matches", {
+        const res = await axios.get("/api/user/matches", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const sortedMatches = res.data.sort((a, b) => {

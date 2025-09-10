@@ -35,7 +35,7 @@ const MyProfile = () => {
         return;
       }
       try {
-        const res = await axios.get(`http://localhost:5000/api/user/profile`, {
+        const res = await axios.get(`/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }, 
         });
         setUserData(res.data); 
