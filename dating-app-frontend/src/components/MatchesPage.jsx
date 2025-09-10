@@ -54,7 +54,7 @@ export default function MatchesPage() {
         <div className="flex items-center p-1 bg-white">
           <img
             src={match.photos?.[0]
-              ? `http://localhost:5000${match.photos[0]}`
+              ? `${match.photos[0]}`
               : `http://localhost:5000/uploads/default-photo.jpg`}
             alt={match.name}
             className="w-[100px] h-[100px] object-cover rounded-full flex-shrink-0"

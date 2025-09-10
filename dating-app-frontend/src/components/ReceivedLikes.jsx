@@ -76,7 +76,7 @@ const ReceivedLikes = () => {
                 <div className="flex justify-center">
                   <img 
                     src={u.photos && u.photos.length > 0
-                      ? `http://localhost:5000${u.photos[0]}`
+                      ? `${u.photos[0]}`
                       : `http://localhost:5000/uploads/default-photo.jpg`
                       } 
                     alt={u.name} 

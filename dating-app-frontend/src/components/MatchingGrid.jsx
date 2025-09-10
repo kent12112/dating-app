@@ -223,7 +223,7 @@ const handleLike = async(userId) => {
             <div className="flex justify-center">
               <img src={
                     user.photos && user.photos.length > 0
-                      ? `http://localhost:5000${user.photos[0]}`
+                      ? `${user.photos[0]}`
                       : `http://localhost:5000/uploads/default-photo.jpg`
                       } 
                     alt={user.name} 

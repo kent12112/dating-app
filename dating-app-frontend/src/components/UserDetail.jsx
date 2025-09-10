@@ -103,7 +103,7 @@ const UserDetail = () => {
             <div className="flex justify-center">
               <img 
                 src={ userData.photos && userData.photos.length > 0
-                  ? `http://localhost:5000${userData.photos[0]}`
+                  ? `${userData.photos[0]}`
                   : `http://localhost:5000/uploads/default-photo.jpg`} 
                 alt={userData.name}
                 className="w-full max-h-[500px] object-cover rounded"
@@ -143,7 +143,7 @@ const UserDetail = () => {
                           className="flex items-center justify-center rounded"
                         >
                           <img
-                            src={`http://localhost:5000${photo}`}
+                            src={`${photo}`}
                             alt={`Photo ${i + 1}`}
                             className="rounded max-h-[400px]"
                           />

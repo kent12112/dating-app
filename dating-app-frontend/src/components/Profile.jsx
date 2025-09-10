@@ -185,7 +185,7 @@ const Profile = () => {
   };
 
   //photo delete
-  const handleDeletePhoto = async (photoPath) => {
+  const handleDeletePhoto = async (photoId) => {
     const token = await getToken(); 
     if (!token) return;
     try {
@@ -193,7 +193,7 @@ const Profile = () => {
         `http://localhost:5000/api/user/photo`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          data: {photoPath}, // send photo path in body
+          data: { photoUrl: photoId } , // send photo path in body
         }
       );
       //refetch user profile
@@ -222,7 +222,7 @@ const Profile = () => {
 
       await axios.put(
         "http://localhost:5000/api/user/photos/order",
-        { photos: items },
+        { photos: items.map(p=>p.public_id) },
         { headers: { Authorization: `Bearer ${token}` } }
       )
     } catch (err) {
@@ -266,8 +266,8 @@ const Profile = () => {
                 {...provided.droppableProps}
                 ref={provided.innerRef}
               >
-                {uploadedPhotos.map((url, index) => (
-                  <Draggable key={url} draggableId={url} index={index}>
+                {uploadedPhotos.map((photo, index) => (
+                  <Draggable key={photo.public_id || `photo-${index}`} draggableId={photo.public_id || `photo-${index}`} index={index}>
                     {(provided) => (
                       <div
                         ref={provided.innerRef}
@@ -276,12 +276,12 @@ const Profile = () => {
                         className="relative"
                       >
                         <img
-                          src={`http://localhost:5000${url}`}
+                          src={photo}
                           alt={`Uploaded ${index}`}
                           className="w-[200px] h-[300px] object-cover"
                         />
                         <button
-                          onClick={() => handleDeletePhoto(url)}
+                          onClick={() => handleDeletePhoto(photo)}
                           className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
                           title="Delete photo"
                         >

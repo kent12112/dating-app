@@ -4,17 +4,25 @@
 import express from "express";
 import User from "../models/User.js";
 import Message from "../models/Message.js";
-import upload from "../middleware/uploadMiddleware.js";
-import fs from "fs"; 
-import path from "path";
+import multer from "multer";
+import cloudinary from "../config/cloudinary.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node"; 
 import { clerkClient } from "@clerk/clerk-sdk-node";
 
-import { fileURLToPath } from "url";
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 const router = express.Router();
 
@@ -167,27 +175,35 @@ router.post("/upload", ClerkExpressRequireAuth(), upload.array("photos", 6), asy
     const newPhotosCount = req.files.length;
 
     if (currentPhotosCount + newPhotosCount > 6) {
-      //delete uploaded files
-      req.files.forEach(file => {
-        fs.unlink(path.join(__dirname, "..", "uploads", file.filename), err => {
-          if (err) console.error("Failed to delete file:", file.filename, err);
-        });
-      });
-
       return res.status(400).json({
         msg: `Photo upload limit exceeded. You already have ${currentPhotosCount} photos. Max is 6.`,
       });
     }
-    //get the file paths
-    //req.files: an array of files uploaded by the user
-    //for each, we extract the filename and build a public path like
-    // /uploads/myhoto-1720000.jpg
-    const photoPaths = req.files.map(file => `/uploads/${file.filename}`);
-
-    //save the file paths to the user's profile in mongoDB
-    //req.user.id: comes from auth middleware
-    //this updates the photos field in that user's document
-    user.photos.push(...photoPaths);
+    // Upload files to Cloudinary
+    const uploadPromises = req.files.map(file =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { 
+            folder: "dating-app",
+            transformation: [
+              { width: 800, height: 800, crop: "limit" },
+              { quality: "auto" },
+              { format: "auto" }
+            ]
+          },
+          (error, result) => {
+            console.log("Cloudinary result:", result);
+            console.log("Cloudinary error:", error);
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(file.buffer);
+      })
+    );
+    
+    const photoUrls = await Promise.all(uploadPromises);
+    user.photos.push(...photoUrls);
     await user.save();
 
     res.json({msg: "Photos uploaded successfully", photos: user.photos});
@@ -196,6 +212,41 @@ router.post("/upload", ClerkExpressRequireAuth(), upload.array("photos", 6), asy
     res.status(500).json({msg: "Failed to upload photos"});
   }
 })
+
+router.delete("/photo", ClerkExpressRequireAuth(), async (req, res) => {
+  const { photoUrl } = req.body;
+  if (!photoUrl) return res.status(400).json({ msg: "Photo URL is required" });
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { clerkId: req.auth.userId },
+      { $pull: { photos: photoUrl } }
+    );
+    if (!user.photos.includes(photoUrl)) {
+      return res.status(404).json({ msg: "Photo not found in your profile" });
+    }
+
+    // Extract public_id from Cloudinary URL
+    // Example URL: https://res.cloudinary.com/your-cloud/image/upload/v1234567890/dating-app/photo123.jpg
+    const urlParts = photoUrl.split('/');
+    const versionIndex = urlParts.findIndex(part => part.startsWith('v') && /^\d+$/.test(part.substring(1)));
+    const publicIdParts = urlParts.slice(versionIndex + 1);
+    const publicIdWithExtension = publicIdParts.join('/');
+    const publicId = publicIdWithExtension.substring(0, publicIdWithExtension.lastIndexOf('.'));
+
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(publicId);
+
+    // Remove from user's photos array
+    user.photos = user.photos.filter((p) => p !== photoUrl);
+    await user.save();
+
+    res.json({ msg: "Photo deleted", photoUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to delete photo" });
+  }
+});
 
 // PUT /api/user/photos/order
 router.put("/photos/order",  ClerkExpressRequireAuth(), async (req, res) => {
@@ -221,40 +272,6 @@ router.put("/photos/order",  ClerkExpressRequireAuth(), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Failed to update photo order" });
-  }
-});
-
-//DELETE /api/user/photo
-router.delete("/photo", ClerkExpressRequireAuth(), async (req, res) => {
-  const userId = req.auth.userId;
-  const {photoPath} = req.body;
-
-  if (!photoPath) {
-    return res.status(400).json({msg: "Photo path is required"});
-  }
-  try {
-    //1. remove photo from user's photos array
-    const user = await User.findOne({ clerkId: userId });
-    if (!user.photos.includes(photoPath)){
-      return res.status(404).json({msg: "Photo not found in your profile"});
-    }
-
-    user.photos = user.photos.filter((p) => p != photoPath);
-    await user.save();
-
-    //2. delete the photo file from disk
-    const absolutePath = path.join(__dirname, "..", photoPath); // safe path
-    fs.unlink(absolutePath, (err) => {
-      if (err) {
-        console.error("Failed to delete file:", err);
-        // Don't block the response; photo is removed from DB at least
-      }
-    });
-
-    return res.json({ msg: "Photo deleted", photoPath });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({msg: "Server error"});
   }
 });
 
