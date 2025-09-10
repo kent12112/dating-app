@@ -11,6 +11,9 @@ import countryList from "react-select-country-list";
 import ISO6391 from "iso-639-1";
 import React, { useMemo } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
+
 const Profile = () => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -73,7 +76,7 @@ const Profile = () => {
       const token = await getToken();
       if (!token) return; 
       try {
-        const res = await api.get("/api/user/profile", {
+        const res = await api.get(`${API_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }, 
           withCredentials: true
         });
@@ -118,7 +121,7 @@ const Profile = () => {
     if (!token) return; 
     try {
       const res = await api.put(
-        "/api/user/profile",
+        `${API_URL}/api/user/profile`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -166,7 +169,7 @@ const Profile = () => {
 
 
       const res = await api.post(
-        "/api/user/upload",
+        `${API_URL}/api/user/upload`,
         formDataUpload,
         {
           headers: {
@@ -194,7 +197,7 @@ const Profile = () => {
     if (!token) return;
     try {
       await api.delete(
-        `/api/user/photo`,
+        `${API_URL}/api/user/photo`,
         {
           headers: { Authorization: `Bearer ${token}` },
           data: { photoUrl: photoId } , // send photo path in body
@@ -202,7 +205,7 @@ const Profile = () => {
         }
       );
       //refetch user profile
-      const res = await api.get("/api/user/profile", {
+      const res = await api.get(`${API_URL}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
       });
@@ -227,7 +230,7 @@ const Profile = () => {
       if (!token) return;
 
       await api.put(
-        "/api/user/photos/order",
+        `${API_URL}/api/user/photos/order`,
         { photos: items.map(p=>p.public_id) },
         { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       )

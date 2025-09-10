@@ -8,6 +8,8 @@ import { useUser, useClerk } from "@clerk/clerk-react";;
 import { Heart, HeartOff } from "lucide-react"; 
 import ISO6391 from "iso-639-1";
 import countryList from "react-select-country-list";
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
 
 const settings = {
   dots: true,
@@ -42,14 +44,14 @@ const UserDetail = () => {
       try {
         // Fetch user details
         const userRes = await api.get(
-          `/api/user/${id}`,
+          `${API_URL}/api/user/${id}`,
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true } // ✅ Authorization header
         );
         setUserData(userRes.data);
 
         // Fetch likes
         const likesRes = await api.get(
-          `/api/user/likes-sent`,
+          `${API_URL}/api/user/likes-sent`,
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true } // ✅ Authorization header
         );
         setLikedUsers(likesRes.data.likeSent || []);
@@ -66,7 +68,7 @@ const UserDetail = () => {
     const token = await getToken();
     try {
       await api.post(
-        `/api/user/like/${userId}`,
+        `${API_URL}/api/user/like/${userId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );

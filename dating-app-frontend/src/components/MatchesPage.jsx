@@ -4,6 +4,9 @@ import axios from "axios";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import api from "../api"; 
 
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
+
 export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
   const { user } = useUser(); 
@@ -25,7 +28,7 @@ export default function MatchesPage() {
       }
 
       try {
-        const res = await api.get("/api/user/matches", {
+        const res = await api.get(`${API_URL}/api/user/matches`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });

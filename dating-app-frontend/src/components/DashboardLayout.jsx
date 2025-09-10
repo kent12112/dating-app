@@ -2,6 +2,8 @@ import {Link, Outlet, useNavigate} from "react-router-dom";
 import { UserButton, useUser, useAuth } from "@clerk/clerk-react"; // Clerk user menu
 import { useEffect, useState } from "react";
 //Outlet: tells the app, render the child route compoent here
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
 
 const DashboardLayout = () => {
   const { user } = useUser(); 
@@ -19,7 +21,7 @@ const DashboardLayout = () => {
         const token = await getToken();
 
         // Use the token in your API request
-        const response = await fetch("/api/user/init", {
+        const response = await fetch(`${API_URL}/api/user/init`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

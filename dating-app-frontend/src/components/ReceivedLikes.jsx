@@ -3,6 +3,8 @@ import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 import api from "../api"; 
 import { useUser, useClerk } from "@clerk/clerk-react";
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
 
 const ReceivedLikes = () => {
   const [likedByUsers, setLikedByUsers] = useState([]);
@@ -25,7 +27,7 @@ const ReceivedLikes = () => {
         return
       }
       try {
-        const res =  await api.get("/api/user/likes-received", {
+        const res =  await api.get(`${API_URL}/api/user/likes-received`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });
@@ -47,7 +49,7 @@ const ReceivedLikes = () => {
 
     try {
       await api.post(
-        `/api/user/match/${otherUserId}`,
+        `${API_URL}/api/user/match/${otherUserId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );

@@ -8,6 +8,9 @@ import { Ruler, Flag, Languages, MapPin } from "lucide-react";
 import ISO6391 from "iso-639-1";
 import countryList from "react-select-country-list";
 
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
+
 const MyProfile = () => {
   const [userData, setUserData] = useState(null);
   const { user } = useUser(); 
@@ -36,7 +39,7 @@ const MyProfile = () => {
         return;
       }
       try {
-        const res = await api.get(`/api/user/profile`, {
+        const res = await api.get(`${API_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }, 
           withCredentials: true
         });

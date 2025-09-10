@@ -5,6 +5,9 @@ import api from "../api";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Heart, HeartOff } from "lucide-react"; 
 
+const API_URL = import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com";
+
+
 // Helper function: Haversine formula (distance in km)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   const toRad = (deg) => deg * Math.PI / 180;
