@@ -10,29 +10,42 @@ import Message from "./models/Message.js";
 
 dotenv.config(); //load .env variables
 
-const app = express(); //Create express app
-//this prepares your backend to use the config(DB credentials, port)
-//If you try to use process.env.MONGO_URI before calling dotenv.config(), it will be undefined.
+const app = express();
+app.use(express.json());
 
-//apply middleware
 const allowedOrigins = [
-  "http://localhost:5173", // your local frontend
-  "https://dating-app-ocha-fvpcac766-kentos-projects-0.vercel.app" // your deployed frontend
+  "http://localhost:5173",
+  "https://ocha-dating-jp.vercel.app",
+  "https://dating-app-ocha-fvpcac766-kentos-projects-0.vercel.app"
 ];
 
+// Handle preflight OPTIONS requests first
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// CORS middleware for actual requests
 app.use(cors({
   origin: function(origin, callback){
-    if(!origin) return callback(null, true); // allow server-to-server or Postman requests
-    if(allowedOrigins.includes(origin)){
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    if(!origin) return callback(null, true); // allow Postman or mobile apps
+    if(!allowedOrigins.includes(origin)) {
+      return callback(new Error("CORS policy does not allow this origin"), false);
     }
+    return callback(null, true);
   },
-  credentials: true, // allows cookies and Authorization headers
+  credentials: true,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
-app.use(express.json()); // parses incoming JSON requests (req.body)
+
 //Middleware are functions that run before your route handler
 //cors(): allows request from your frontend
 //express.json(): allows your server to read JSON request bodies
@@ -47,6 +60,8 @@ const io = new Server(server, {
   }
 })
 app.set("io", io);
+
+app.options("*", cors()); 
 
 //set up routes
 import userRoutes from "./routes/userRoutes.js";
