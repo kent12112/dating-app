@@ -19,27 +19,9 @@ const allowedOrigins = [
   "https://dating-app-ocha-fvpcac766-kentos-projects-0.vercel.app"
 ];
 
-// Handle preflight OPTIONS requests first
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-    return res.sendStatus(200);
-  }
-  next();
-});
-
 // CORS middleware for actual requests
 app.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true); // allow Postman or mobile apps
-    if(!allowedOrigins.includes(origin)) {
-      return callback(new Error("CORS policy does not allow this origin"), false);
-    }
-    return callback(null, true);
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"]
@@ -61,7 +43,6 @@ const io = new Server(server, {
 })
 app.set("io", io);
 
-app.options("*", cors()); 
 
 //set up routes
 import userRoutes from "./routes/userRoutes.js";
