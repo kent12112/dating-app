@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
+import api from "../api"; 
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Heart, HeartOff } from "lucide-react"; 
 
@@ -60,11 +61,11 @@ const MatchingGrid = () => {
 
     try {
       const [usersRes, likesRes] = await Promise.all([
-        axios.get("/api/user/all", { 
+        api.get("/api/user/all", { 
           headers: { "Authorization": `Bearer ${token}` },
           params: {latitude: lat, longitude: lon}
          }),
-        axios.get("/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
+        api.get("/api/user/likes-sent", { headers: { "Authorization": `Bearer ${token}` } }),
       ]);
       setLikedUsers(likesRes.data.likeSent || []);
 
@@ -193,7 +194,7 @@ const MatchingGrid = () => {
 const handleLike = async(userId) => {
   const token = await getToken();
   try {
-    const res = await axios.post(`/api/user/like/${userId}`, {}, {
+    const res = await api.post(`/api/user/like/${userId}`, {}, {
       headers: {"Authorization": `Bearer ${token}`},
     });
 

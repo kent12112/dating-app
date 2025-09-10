@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import axios from "axios";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import api from "../api"; 
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
@@ -24,7 +25,7 @@ export default function MatchesPage() {
       }
 
       try {
-        const res = await axios.get("/api/user/matches", {
+        const res = await api.get("/api/user/matches", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const sortedMatches = res.data.sort((a, b) => {

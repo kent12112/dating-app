@@ -1,5 +1,6 @@
 import {useEffect, useState, useCallback} from "react";
 import axios from "axios";
+import api from "../api"; 
 import {useNavigate} from "react-router-dom";
 import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 import Cropper from "react-easy-crop";
@@ -72,7 +73,7 @@ const Profile = () => {
       const token = await getToken();
       if (!token) return; 
       try {
-        const res = await axios.get("/api/user/profile", {
+        const res = await api.get("/api/user/profile", {
           headers: { Authorization: `Bearer ${token}` }, 
         });
         setFormData({
@@ -115,7 +116,7 @@ const Profile = () => {
     const token = await getToken();
     if (!token) return; 
     try {
-      const res = await axios.put(
+      const res = await api.put(
         "/api/user/profile",
         formData,
         {
@@ -162,7 +163,7 @@ const Profile = () => {
       formDataUpload.append("photos", croppedImage);
 
 
-      const res = await axios.post(
+      const res = await api.post(
         "/api/user/upload",
         formDataUpload,
         {
@@ -189,7 +190,7 @@ const Profile = () => {
     const token = await getToken(); 
     if (!token) return;
     try {
-      await axios.delete(
+      await api.delete(
         `/api/user/photo`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -197,7 +198,7 @@ const Profile = () => {
         }
       );
       //refetch user profile
-      const res = await axios.get("/api/user/profile", {
+      const res = await api.get("/api/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUploadedPhotos(res.data.photos || []);
@@ -220,7 +221,7 @@ const Profile = () => {
       const token = await getToken();
       if (!token) return;
 
-      await axios.put(
+      await api.put(
         "/api/user/photos/order",
         { photos: items.map(p=>p.public_id) },
         { headers: { Authorization: `Bearer ${token}` } }

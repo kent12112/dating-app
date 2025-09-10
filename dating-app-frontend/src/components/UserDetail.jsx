@@ -2,6 +2,7 @@ import {useEffect, useState, useMemo} from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Ruler, Flag, Languages, MapPin } from "lucide-react";
 import axios from "axios";
+import api from "../api"; 
 import Slider from "react-slick"
 import { useUser, useClerk } from "@clerk/clerk-react";;
 import { Heart, HeartOff } from "lucide-react"; 
@@ -40,14 +41,14 @@ const UserDetail = () => {
 
       try {
         // Fetch user details
-        const userRes = await axios.get(
+        const userRes = await api.get(
           `/api/user/${id}`,
           { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
         );
         setUserData(userRes.data);
 
         // Fetch likes
-        const likesRes = await axios.get(
+        const likesRes = await api.get(
           `/api/user/likes-sent`,
           { headers: { Authorization: `Bearer ${token}` } } // ✅ Authorization header
         );
@@ -64,7 +65,7 @@ const UserDetail = () => {
   const handleLike = async (userId) => {
     const token = await getToken();
     try {
-      await axios.post(
+      await api.post(
         `/api/user/like/${userId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }

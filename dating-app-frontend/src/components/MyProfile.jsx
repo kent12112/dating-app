@@ -1,6 +1,7 @@
 import {useEffect, useState, useMemo} from "react";
 import {useParams} from "react-router-dom";
 import axios from "axios";
+import api from "../api"; 
 import { useUser, useClerk } from "@clerk/clerk-react";
 import Slider from "react-slick";
 import { Ruler, Flag, Languages, MapPin } from "lucide-react";
@@ -35,7 +36,7 @@ const MyProfile = () => {
         return;
       }
       try {
-        const res = await axios.get(`/api/user/profile`, {
+        const res = await api.get(`/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }, 
         });
         setUserData(res.data); 

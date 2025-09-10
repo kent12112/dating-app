@@ -30,7 +30,7 @@ export default function ChatWindow() {
       const token = await getToken();
       if (!token) return;
   
-      const res = await axios.get("/api/user/me", {
+      const res = await api.get("/api/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCurrentUserId(res.data.mongoId);
@@ -96,7 +96,7 @@ export default function ChatWindow() {
 
 
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `/api/messages/send/`,
         { recipientId: matchId, content: text },
         { headers: { Authorization: `Bearer ${token}` } }

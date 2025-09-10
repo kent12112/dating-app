@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
+import api from "../api"; 
 import { useUser, useClerk } from "@clerk/clerk-react";
 
 const ReceivedLikes = () => {
@@ -24,7 +25,7 @@ const ReceivedLikes = () => {
         return
       }
       try {
-        const res =  await axios.get("/api/user/likes-received", {
+        const res =  await api.get("/api/user/likes-received", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLikedByUsers(res.data.likes || []);
@@ -44,7 +45,7 @@ const ReceivedLikes = () => {
     }
 
     try {
-      await axios.post(
+      await api.post(
         `/api/user/match/${otherUserId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
