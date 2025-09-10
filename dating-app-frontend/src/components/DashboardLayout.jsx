@@ -19,7 +19,7 @@ const DashboardLayout = () => {
         const token = await getToken();
 
         // Use the token in your API request
-        const response = await fetch("http://localhost:5000/api/user/init", {
+        const response = await fetch("/api/user/init", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

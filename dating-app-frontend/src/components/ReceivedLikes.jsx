@@ -77,7 +77,7 @@ const ReceivedLikes = () => {
                   <img 
                     src={u.photos && u.photos.length > 0
                       ? `${u.photos[0]}`
-                      : `http://localhost:5000/uploads/default-photo.jpg`
+                      : `/default-photo.jpg`
                       } 
                     alt={u.name} 
                     className="w-[180px] h-[200px] object-cover rounded" />

@@ -62,7 +62,7 @@ export default function ChatWindow() {
   // SOCKET.IO real-time updates
   useEffect(() => {
     if (!currentUserId) return; 
-    socketRef.current = io("http://localhost:5000");
+    socketRef.current = io(import.meta.env.VITE_API_URL || "https://dating-app-x0nx.onrender.com");
     const socket = socketRef.current;
 
     // ✅ set up listeners first

@@ -104,7 +104,7 @@ const UserDetail = () => {
               <img 
                 src={ userData.photos && userData.photos.length > 0
                   ? `${userData.photos[0]}`
-                  : `http://localhost:5000/uploads/default-photo.jpg`} 
+                  : `/default-photo.jpg`} 
                 alt={userData.name}
                 className="w-full max-h-[500px] object-cover rounded"
               />

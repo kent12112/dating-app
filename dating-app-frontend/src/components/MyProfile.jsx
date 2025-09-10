@@ -56,7 +56,7 @@ const MyProfile = () => {
           <img 
             src={ userData.photos && userData.photos.length > 0
               ? `${userData.photos[0]}`
-              : `http://localhost:5000/uploads/default-photo.jpg`} 
+              : `/default-photo.jpg`} 
             alt={userData.name}
             className="max-h-[400px] rounded"
           />
